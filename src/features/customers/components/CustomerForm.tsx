@@ -96,8 +96,40 @@ export function CustomerForm({
     setValue("tags", tags.filter(t => t !== tag), { shouldDirty: true });
   };
 
+  const customerType = watch("customer_type");
+  const chooseType = (type: "個人" | "公司") => {
+    setValue("customer_type", type, { shouldDirty: true });
+    // 個人 has no invoice header, so drop what was typed for a company.
+    if (type === "個人") {
+      setValue("company_name", "", { shouldDirty: true });
+      setValue("tax_id", "", { shouldDirty: true });
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onSubmit={handleSubmit((values) =>
+        onSubmit(values.customer_type === "個人" ? { ...values, company_name: "", tax_id: "" } : values),
+      )}
+      className="space-y-6"
+    >
+      <div role="radiogroup" aria-label="客戶身分" className="inline-flex rounded-lg border border-input bg-muted/40 p-1">
+        {([["個人", "個人客戶"], ["公司", "公司行號"]] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={customerType === value}
+            onClick={() => chooseType(value)}
+            className={`px-4 h-9 rounded-md text-sm font-medium transition-colors ${
+              customerType === value ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -172,14 +204,9 @@ export function CustomerForm({
           </select>
         </div>
 
+        {customerType === "公司" && (
         <div className="md:col-span-2 space-y-4 rounded-lg border border-border/70 bg-muted/20 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold">開發票 / 合約資料</h3>
-            <select {...register("customer_type")} className="h-8 rounded-md border border-input bg-background px-2 text-sm">
-              <option value="個人">個人客戶</option>
-              <option value="公司">公司行號</option>
-            </select>
-          </div>
+          <h3 className="text-sm font-semibold">開發票 / 合約資料</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none">公司抬頭</label>
@@ -200,6 +227,7 @@ export function CustomerForm({
             </div>
           </div>
         </div>
+        )}
 
         <div className="space-y-2 md:col-span-2">
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
