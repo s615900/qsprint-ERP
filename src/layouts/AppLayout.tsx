@@ -39,34 +39,57 @@ type NavItem = {
   subItems?: { name: string; icon: LucideIcon; route: string }[];
 };
 
-const navItems: NavItem[] = [
-  { name: "儀表板", icon: LayoutDashboard, route: "/dashboard" },
-  { name: "客戶管理", icon: Users, route: "/customers" },
+// Sidebar sections: related features sit together under a small heading.
+const navGroups: { title?: string; items: NavItem[] }[] = [
   {
-    name: "線上預約系統", icon: CalendarCheck, route: "/bookings",
-    subItems: [
-      { name: "預約管理", icon: ClipboardList, route: "/bookings" },
-      { name: "本週檔期", icon: CalendarDays, route: "/bookings/weekly" },
-      { name: "開放時段", icon: CalendarClock, route: "/bookings/schedule" },
-    ]
+    items: [{ name: "儀表板", icon: LayoutDashboard, route: "/dashboard" }],
   },
-  { name: "商品管理", icon: PackageIcon, route: "/products" },
-  { name: "報價系統", icon: FileText, route: "/quotes" },
-  { name: "合約管理", icon: FileSignature, route: "/contracts" },
-  { name: "訂單管理", icon: ShoppingBag, route: "/orders" },
-  { name: "專案進度", icon: FolderKanban, route: "/projects" },
   {
-    name: "會計系統", icon: Calculator, route: "/accounting",
-    subItems: [
-      { name: "收支記帳", icon: BookOpen, route: "/accounting" },
-      { name: "發票管理", icon: ReceiptText, route: "/accounting/invoices" },
-      { name: "進項憑證", icon: PurchaseIcon, route: "/accounting/purchases" },
-      { name: "營業稅申報（401）", icon: FileCheck2, route: "/accounting/tax" },
-      { name: "字軌配號", icon: ListOrdered, route: "/accounting/tracks" },
-    ]
+    title: "客戶與預約",
+    items: [
+      { name: "客戶管理", icon: Users, route: "/customers" },
+      {
+        name: "線上預約系統", icon: CalendarCheck, route: "/bookings",
+        subItems: [
+          { name: "預約管理", icon: ClipboardList, route: "/bookings" },
+          { name: "本週檔期", icon: CalendarDays, route: "/bookings/weekly" },
+          { name: "開放時段", icon: CalendarClock, route: "/bookings/schedule" },
+        ],
+      },
+    ],
   },
-  { name: "人員管理", icon: UserCog, route: "/staff" },
-  { name: "設定", icon: Settings, route: "/settings" },
+  {
+    title: "接案流程",
+    items: [
+      { name: "商品管理", icon: PackageIcon, route: "/products" },
+      { name: "報價系統", icon: FileText, route: "/quotes" },
+      { name: "合約管理", icon: FileSignature, route: "/contracts" },
+      { name: "訂單管理", icon: ShoppingBag, route: "/orders" },
+      { name: "專案進度", icon: FolderKanban, route: "/projects" },
+    ],
+  },
+  {
+    title: "財務",
+    items: [
+      {
+        name: "會計系統", icon: Calculator, route: "/accounting",
+        subItems: [
+          { name: "收支記帳", icon: BookOpen, route: "/accounting" },
+          { name: "發票管理", icon: ReceiptText, route: "/accounting/invoices" },
+          { name: "進項憑證", icon: PurchaseIcon, route: "/accounting/purchases" },
+          { name: "營業稅申報（401）", icon: FileCheck2, route: "/accounting/tax" },
+          { name: "字軌配號", icon: ListOrdered, route: "/accounting/tracks" },
+        ],
+      },
+    ],
+  },
+  {
+    title: "系統",
+    items: [
+      { name: "人員管理", icon: UserCog, route: "/staff" },
+      { name: "設定", icon: Settings, route: "/settings" },
+    ],
+  },
 ];
 
 function isRouteActive(location: string, route: string) {
@@ -115,7 +138,12 @@ function Brand() {
 function FullNav({ location, onNavigate }: { location: string; onNavigate?: () => void }) {
   return (
     <nav className="flex-1 py-6 px-3 flex flex-col gap-1 overflow-y-auto">
-      {navItems.map((item) => {
+      {navGroups.map((group, gi) => (
+        <div key={group.title ?? "main"} className={cn("flex flex-col gap-1", gi > 0 && "mt-4")}>
+          {group.title && (
+            <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-sidebar-foreground/40">{group.title}</p>
+          )}
+          {group.items.map((item) => {
         const isActive = isRouteActive(location, item.route);
 
         if (item.subItems) {
@@ -183,14 +211,16 @@ function FullNav({ location, onNavigate }: { location: string; onNavigate?: () =
             <span className="text-sm">{item.name}</span>
           </Link>
         );
-      })}
+          })}
+        </div>
+      ))}
     </nav>
   );
 }
 
 // Icon-only rail for tablets — sub-items are flattened into their own icons.
 function RailNav({ location }: { location: string }) {
-  const entries = navItems.flatMap((item) =>
+  const entries = navGroups.flatMap((g) => g.items).flatMap((item) =>
     item.subItems
       ? item.subItems.map((s) => ({ ...s, comingSoon: false, active: activeSubRoute(location, item.subItems!) === s.route }))
       : [{ name: item.name, icon: item.icon, route: item.route, comingSoon: item.comingSoon, active: isRouteActive(location, item.route) }]
