@@ -11,8 +11,7 @@ const LINE_ERRORS: Record<string, string> = {
   cancelled: "已取消 LINE 登入",
   state: "LINE 登入已逾時，請再試一次",
   profile: "無法取得 LINE 資料，請再試一次",
-  not_member: "這個 LINE 帳號還不是會員。請向工作室索取會員啟用連結",
-  invite: "啟用連結無效或已過期，請向工作室索取新的連結",
+    invite: "啟用連結無效或已過期，請向工作室索取新的連結",
   taken: "此 LINE 帳號已綁定其他會員",
 };
 
@@ -42,7 +41,7 @@ export function CustomerLogin() {
         <LineLoginButton next={next} label="使用 LINE 登入" />
 
         <p className="text-center text-sm text-muted-foreground">
-          還不是會員？請向工作室索取會員啟用連結
+          第一次使用？按上面的按鈕，用 LINE 登入後補充姓名與手機即可註冊
         </p>
       </div>
     </div>

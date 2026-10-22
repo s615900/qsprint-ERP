@@ -31,7 +31,7 @@ export default function Home() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          會員採邀請制，請向工作室索取啟用連結。
+          第一次使用請按「會員登入」，用 LINE 登入後補充姓名與手機即可註冊。
         </p>
       </div>
       <Link href="/admin-login" className="mt-6 text-xs text-muted-foreground/70 hover:text-foreground">

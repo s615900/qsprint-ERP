@@ -1,30 +1,73 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Camera } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Camera, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { LineLoginButton } from "../components/LineLoginButton";
 
-// Membership is by invitation: the studio creates the customer, then sends this page's link.
-export function CustomerRegister() {
-  const searchParams = useSearchParams();
-  const invite = searchParams.get("invite");
-  const next = searchParams.get("next") || "/book";
+const inputCls =
+  "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-  const [name, setName] = useState<string | null>(null);
-  const [invalid, setInvalid] = useState(false);
+// Sign-up is LINE only. After LINE approves, new members land here to add their name and phone.
+export function CustomerRegister() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/book";
+  const invite = searchParams.get("invite");
+  const afterLine = searchParams.get("line") === "1";
+  const queryClient = useQueryClient();
+
+  const [lineName, setLineName] = useState<string | null>(null);
+  const [inviteName, setInviteName] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!afterLine) return;
+    fetch("/api/auth/line/register")
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setLineName(data.display_name);
+        setName((n) => n || data.display_name);
+      })
+      .catch(() => {
+        toast.error("LINE 登入已逾時，請重新操作");
+        router.replace("/login");
+      });
+  }, [afterLine, router]);
+
   useEffect(() => {
     if (!invite) return;
     fetch(`/api/auth/invite?token=${encodeURIComponent(invite)}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error();
-        setName((await res.json()).name);
-      })
-      .catch(() => setInvalid(true));
+      .then(async (res) => (res.ok ? setInviteName((await res.json()).name) : null))
+      .catch(() => null);
   }, [invite]);
 
-  const closed = !invite || invalid;
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/auth/line/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email: email || undefined }),
+      });
+      if (!res.ok) {
+        toast.error((await res.json().catch(() => ({}))).error ?? "註冊失敗，請稍後再試");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast.success("註冊成功，歡迎加入");
+      router.push(next);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center p-4">
@@ -34,29 +77,46 @@ export function CustomerRegister() {
       </div>
 
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl border border-border p-8 space-y-6">
-        {closed ? (
-          <div className="text-center space-y-3">
-            <h1 className="text-2xl font-bold text-foreground">會員由工作室邀請</h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              {invalid
-                ? "這個邀請連結無效或已過期，請向工作室索取新的連結。"
-                : "目前僅開放工作室建立的會員。如果你已經是客戶，請向工作室索取專屬的會員啟用連結。"}
-            </p>
-            <Link href="/login" className="inline-block text-primary font-medium hover:underline text-sm">
-              已啟用？前往登入
-            </Link>
-          </div>
+        {afterLine ? (
+          <>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-foreground">完成會員註冊</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {lineName ? `LINE「${lineName}」已驗證，請補充聯絡資料` : "載入中..."}
+              </p>
+            </div>
+            <form onSubmit={submit} className="space-y-4">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium leading-none">姓名</span>
+                <input required value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="例如：王小明" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium leading-none">手機號碼</span>
+                <input required value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="0912-345-678" />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium leading-none">電子信箱 (選填)</span>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="example@email.com" />
+              </label>
+              <button
+                type="submit"
+                disabled={saving || !lineName}
+                className="w-full h-11 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                {saving ? "註冊中..." : "完成註冊"}
+              </button>
+            </form>
+          </>
         ) : (
           <>
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-foreground">啟用會員</h1>
+              <h1 className="text-2xl font-bold text-foreground">會員註冊</h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                {name ? `${name} 您好，選一種方式啟用就能線上預約` : "確認邀請連結中..."}
+                {inviteName ? `${inviteName} 您好，用 LINE 啟用會員` : "使用 LINE 註冊，免填密碼"}
               </p>
             </div>
-
-            <LineLoginButton next={next} invite={invite!} label="使用 LINE 啟用會員" />
-            <p className="text-center text-xs text-muted-foreground">啟用後，之後都用 LINE 登入即可</p>
+            <LineLoginButton next={next} invite={invite ?? undefined} label="使用 LINE 註冊 / 登入" />
           </>
         )}
       </div>

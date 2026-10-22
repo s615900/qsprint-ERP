@@ -5,8 +5,8 @@ import { Copy, ExternalLink, Link2 } from "lucide-react";
 import { toast } from "sonner";
 
 const LINKS = [
-  { path: "/book", title: "線上預約頁", note: "客戶選攝影師、方案、時段並送出預約。需先是會員並登入。" },
-  { path: "/login", title: "會員登入頁", note: "已啟用的會員用 LINE 登入。" },
+  { path: "/book", title: "線上預約頁", note: "客戶選攝影師、方案、時段並送出預約。未登入會先請他用 LINE 註冊 / 登入。" },
+  { path: "/login", title: "會員登入頁", note: "會員用 LINE 登入；第一次使用會自動帶去註冊。" },
   { path: "/account", title: "會員中心", note: "會員查看資料、綁定 LINE。" },
 ];
 
@@ -26,7 +26,7 @@ export function PublicLinks() {
         <h2 className="text-xl font-semibold tracking-tight">客戶用的網址</h2>
       </div>
       <p className="text-sm text-muted-foreground">
-        貼到 LINE 官方帳號、Instagram 或名片即可。會員採邀請制：先到「客戶管理」開啟客戶資料，按「產生會員邀請連結」傳給對方啟用。
+        貼到 LINE 官方帳號、Instagram 或名片即可。客戶按「使用 LINE 登入」就會自動註冊成會員，不需要連結。
       </p>
       <ul className="divide-y divide-border rounded-lg border border-border">
         {LINKS.map((l) => {
