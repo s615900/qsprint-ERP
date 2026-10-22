@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-client/custom-fetch";
 import { format, addDays, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock, ClipboardEdit } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomerSession } from "@/features/customer-auth/hooks/useCustomerSession";
 
@@ -177,7 +178,15 @@ export function PublicBooking() {
             <Camera className="w-6 h-6 text-primary" />
             <span className="font-bold text-lg tracking-wide text-sidebar">青春止秒攝影工作室</span>
           </div>
-          <div className="text-sm font-medium text-muted-foreground hidden sm:block">線上預約系統</div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-muted-foreground hidden md:block">線上預約系統</span>
+            <Link
+              href="/account"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-input bg-background hover:bg-accent rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap"
+            >
+              <ClipboardEdit className="w-4 h-4" /> 資料變更申請
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -361,6 +370,12 @@ export function PublicBooking() {
                       placeholder="尚未填寫"
                       className="flex h-12 w-full rounded-md border border-input bg-muted/50 px-4 py-2 text-base text-foreground/80 cursor-not-allowed shadow-sm"
                     />
+                    <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
+                      姓名、電話、信箱已鎖定，資料有誤請提出申請，工作室審核後會更新。
+                      <Link href="/account" className="inline-flex items-center gap-1 text-primary font-medium hover:underline">
+                        <ClipboardEdit className="w-3.5 h-3.5" /> 申請修改資料
+                      </Link>
+                    </p>
                   </div>
 
                   <div className="space-y-2">
