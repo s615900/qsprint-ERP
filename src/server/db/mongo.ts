@@ -205,8 +205,6 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
     unique("staff_availability_weekly", { staff_id: 1, weekday: 1 }),
     unique("staff_availability_overrides", { staff_id: 1, date: 1 }),
     unique("availability_weekly", { weekday: 1 }),
-    unique("member_invites", { id: 1 }),
-    unique("member_invites", { token: 1 }),
     unique("admin_users", { id: 1 }),
     unique("admin_users", { line_user_id: 1 }),
     unique("admin_invites", { id: 1 }),

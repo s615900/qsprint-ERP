@@ -11,8 +11,7 @@ const LINE_ERRORS: Record<string, string> = {
   cancelled: "已取消 LINE 登入",
   state: "LINE 登入已逾時，請再試一次",
   profile: "無法取得 LINE 資料，請再試一次",
-    invite: "啟用連結無效或已過期，請向工作室索取新的連結",
-  taken: "此 LINE 帳號已綁定其他會員",
+    taken: "此 LINE 帳號已綁定其他會員",
 };
 
 // Members sign in with LINE only; there is no phone/password login.

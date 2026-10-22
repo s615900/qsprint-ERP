@@ -10,7 +10,6 @@ import {
 } from "@/server/line";
 import { getCustomerId, setCustomerSessionCookie } from "@/server/session";
 import { handleAdminCallback } from "@/server/adminLogin";
-import { claimMemberInvite, ensureAccount } from "@/server/memberInvite";
 
 // GET /api/auth/line/callback — LINE redirects here after the customer approves.
 export async function GET(req: NextRequest) {
@@ -46,17 +45,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${origin}${saved.next}`);
   }
 
-  // An invite link (optional) attaches this LINE account to a customer the studio already created.
-  if (saved.invite) {
-    const customer = await claimMemberInvite(saved.invite);
-    if (!customer) return NextResponse.redirect(`${origin}/login?line_error=invite`);
-    if (!(await bindLineToCustomer(customer.id, profile))) {
-      return NextResponse.redirect(`${origin}/login?line_error=taken`);
-    }
-    await ensureAccount(customer);
-    await setCustomerSessionCookie(customer.id);
-    return NextResponse.redirect(`${origin}${saved.next}`);
-  }
   // First visit with this LINE account: collect name/phone, then they are a member.
   await setPendingProfile(profile);
   return NextResponse.redirect(`${origin}/register?line=1&next=${encodeURIComponent(saved.next)}`);

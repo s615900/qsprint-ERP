@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { db, dailyNumber } from "@/server/db";
 import { clearPendingProfile, getPendingProfile } from "@/server/line";
-import { ensureAccount } from "@/server/memberInvite";
+import { ensureAccount } from "@/server/memberAccount";
 import { setCustomerSessionCookie } from "@/server/session";
 import { isUniqueViolation } from "@/server/staff";
 import { error, json, readJson } from "@/server/http";

@@ -15,12 +15,10 @@ export function CustomerRegister() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/book";
-  const invite = searchParams.get("invite");
   const afterLine = searchParams.get("line") === "1";
   const queryClient = useQueryClient();
 
   const [lineName, setLineName] = useState<string | null>(null);
-  const [inviteName, setInviteName] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -40,13 +38,6 @@ export function CustomerRegister() {
         router.replace("/login");
       });
   }, [afterLine, router]);
-
-  useEffect(() => {
-    if (!invite) return;
-    fetch(`/api/auth/invite?token=${encodeURIComponent(invite)}`)
-      .then(async (res) => (res.ok ? setInviteName((await res.json()).name) : null))
-      .catch(() => null);
-  }, [invite]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,10 +104,10 @@ export function CustomerRegister() {
             <div className="text-center">
               <h1 className="text-2xl font-bold text-foreground">會員註冊</h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                {inviteName ? `${inviteName} 您好，用 LINE 啟用會員` : "使用 LINE 註冊，免填密碼"}
+                使用 LINE 註冊，免填密碼
               </p>
             </div>
-            <LineLoginButton next={next} invite={invite ?? undefined} label="使用 LINE 註冊 / 登入" />
+            <LineLoginButton next={next} label="使用 LINE 註冊 / 登入" />
           </>
         )}
       </div>
