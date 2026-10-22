@@ -35,7 +35,30 @@ export async function POST(req: Request) {
     }
     if (ev.type !== "message" || ev.message?.type !== "text") continue;
 
-    const code = ev.message.text?.match(/\b(\d{6})\b/)?.[1];
+    const text = ev.message.text ?? "";
+
+    // Admin binding code: "A" + 6 digits, issued in 設定 → 後台管理員.
+    const adminCode = text.toUpperCase().match(/\bA\d{6}\b/)?.[0];
+    if (adminCode) {
+      const invite = await db.adminInvites.update(
+        { code: adminCode, used_at: null, expires_at: { $gt: new Date() } },
+        { used_at: new Date() },
+      );
+      if (!invite) {
+        await replyLine(ev.replyToken, "綁定碼不正確或已過期，請向管理員索取新的綁定碼。");
+        continue;
+      }
+      try {
+        await db.adminUsers.insert({ line_user_id: userId, display_name: invite.name });
+        await replyLine(ev.replyToken, `綁定成功！${invite.name} 您好，現在可以用 LINE 登入後台了。`);
+      } catch (err) {
+        if ((err as { code?: number }).code !== 11000) throw err;
+        await replyLine(ev.replyToken, "這個 LINE 帳號已經是後台管理員了。");
+      }
+      continue;
+    }
+
+    const code = text.match(/\b(\d{6})\b/)?.[1];
     if (!code) {
       await replyLine(ev.replyToken, HELP);
       continue;

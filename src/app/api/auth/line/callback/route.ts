@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   const profile = await fetchLineProfile(req, code);
   if (!profile) return NextResponse.redirect(`${origin}${failPage}?line_error=profile`);
 
-  if (saved.mode === "admin") return handleAdminCallback(origin, profile, saved.next, saved.invite);
+  if (saved.mode === "admin") return handleAdminCallback(origin, profile, saved.next);
 
   if (saved.mode === "bind") {
     const customerId = await getCustomerId();

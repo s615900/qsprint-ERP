@@ -14,7 +14,6 @@ const ERRORS: Record<string, string> = {
 export function AdminLogin() {
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
-  const invite = params.get("invite");
   const error = params.get("error") ?? params.get("line_error");
   const uid = params.get("uid");
   const [cfg, setCfg] = useState<{ line_enabled: boolean; dev_login: boolean } | null>(null);
@@ -23,7 +22,7 @@ export function AdminLogin() {
     fetch("/api/admin-auth/config").then((r) => r.json()).then(setCfg).catch(() => setCfg(null));
   }, []);
 
-  const startHref = `/api/admin-auth/start?next=${encodeURIComponent(next)}${invite ? `&invite=${encodeURIComponent(invite)}` : ""}`;
+  const startHref = `/api/admin-auth/start?next=${encodeURIComponent(next)}`;
 
   const devLogin = async () => {
     await fetch("/api/admin-auth/dev-login", { method: "POST" });
@@ -41,7 +40,7 @@ export function AdminLogin() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">管理後台登入</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {invite ? "你受邀成為管理員，請用 LINE 登入以完成加入" : "僅限工作室管理員，請用 LINE 登入"}
+            僅限工作室管理員，請用 LINE 登入
           </p>
         </div>
 
@@ -50,7 +49,7 @@ export function AdminLogin() {
             <p className="flex items-center gap-1.5 font-medium text-amber-800">
               <ShieldAlert className="w-4 h-4" /> 這個 LINE 帳號沒有後台權限
             </p>
-            <p className="text-amber-800/90">請聯絡管理員產生邀請連結，或將下列 LINE ID 加入系統設定：</p>
+            <p className="text-amber-800/90">請聯絡管理員在後台新增你的資料並產生綁定碼，再把綁定碼傳到工作室的官方 LINE。若你是系統擁有者，可把下列 LINE ID 加入環境變數 ADMIN_LINE_USER_IDS：</p>
             {uid && <code className="block break-all rounded bg-white border border-amber-200 px-2 py-1 text-xs">{uid}</code>}
           </div>
         ) : error ? (

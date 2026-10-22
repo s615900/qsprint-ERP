@@ -316,9 +316,11 @@ export interface AdminUser {
   created_at: Date;
 }
 
+// A new admin added in the back office. They send `code` to the official LINE account to link their LINE.
 export interface AdminInvite {
   id: number;
-  token: string;
+  name: string;
+  code: string; // "A" + 6 digits
   created_by: number | null;
   expires_at: Date;
   used_at: Date | null;

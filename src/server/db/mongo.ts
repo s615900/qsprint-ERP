@@ -156,6 +156,10 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
   const plain = (col: string, key: Document) => d.collection(col).createIndex(key);
   const isString = (field: string) => ({ partialFilterExpression: { [field]: { $type: "string" } } });
 
+  // Leftovers from earlier versions of the app (admin invite links, member invite links).
+  await d.collection("admin_invites").dropIndex("token_1").catch(() => undefined);
+  await d.collection("member_invites").drop().catch(() => undefined);
+
   await Promise.all([
     unique("customers", { id: 1 }),
     unique("customers", { customer_number: 1 }),
@@ -208,7 +212,7 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
     unique("admin_users", { id: 1 }),
     unique("admin_users", { line_user_id: 1 }),
     unique("admin_invites", { id: 1 }),
-    unique("admin_invites", { token: 1 }),
+    unique("admin_invites", { code: 1 }),
   ]);
 }
 
