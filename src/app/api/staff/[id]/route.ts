@@ -1,6 +1,7 @@
 import { db, rawCollection } from "@/server/db";
 import { UpdateStaffParams, UpdateStaffBody, DeleteStaffParams } from "@/lib/api-zod";
 import { isUniqueViolation, selectStaffMember } from "@/server/staff";
+import { revokeAdminAccess } from "@/server/adminAccess";
 import { error, json, noContent, readJson } from "@/server/http";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -46,6 +47,7 @@ export async function DELETE(_req: Request, ctx: Ctx) {
   if (member.booking_count > 0) return error("這位人員有預約紀錄，請改用停用", 409);
 
   await db.staff.remove(member.id);
+  await revokeAdminAccess(member.id);
   // Their personal schedule goes with them.
   await Promise.all(
     ["staff_availability_weekly", "staff_availability_overrides"].map(async (name) =>

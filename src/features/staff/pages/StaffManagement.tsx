@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Phone, UserCog, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,8 +15,16 @@ import {
 import { ApiError } from "@/lib/api-client/custom-fetch";
 import { Switch } from "@/components/ui/switch";
 import { invalidateApi } from "@/lib/invalidate";
+import { StaffAdminAccess, type AccessEntry } from "../components/StaffAdminAccess";
 
-const ROLES = ["攝影師", "造型師", "修圖師", "助理"];
+type AccessInfo = {
+  access: AccessEntry[];
+  other_admins: { id: number; display_name: string }[];
+  env_admin_count: number;
+  oa_id: string | null;
+};
+
+const ROLES = ["攝影師", "造型師", "修圖師", "助理", "管理員"];
 
 const inputCls =
   "flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -94,11 +102,30 @@ export function StaffManagement() {
   const updateStaff = useUpdateStaff();
   const deleteStaff = useDeleteStaff();
 
+  const [accessInfo, setAccessInfo] = useState<AccessInfo | null>(null);
+  const loadAccess = useCallback(async () => {
+    const res = await fetch("/api/admin/access");
+    if (res.ok) setAccessInfo(await res.json());
+  }, []);
+  useEffect(() => {
+    loadAccess();
+  }, [loadAccess]);
+  // While someone is waiting to bind, check again so the row flips to "可登入後台" by itself.
+  const hasPending = accessInfo?.access.some((a) => a.status === "pending") ?? false;
+  useEffect(() => {
+    if (!hasPending) return;
+    const t = setInterval(loadAccess, 4000);
+    return () => clearInterval(t);
+  }, [hasPending, loadAccess]);
+
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
 
   // Booking lists show staff names, so refresh them after a rename.
-  const refresh = () => invalidateApi(queryClient, "/api/staff", "/api/photographers", "/api/availability", "/api/bookings", "/api/customers", "/api/dashboard");
+  const refresh = () => {
+    loadAccess();
+    invalidateApi(queryClient, "/api/staff", "/api/photographers", "/api/availability", "/api/bookings", "/api/customers", "/api/dashboard");
+  };
   const close = () => { setFormOpen(false); setEditing(null); };
 
   const handleSave = (data: StaffInput) => {
@@ -150,7 +177,7 @@ export function StaffManagement() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">人員管理</h1>
-          <p className="text-muted-foreground mt-1 text-sm">管理攝影師與工作人員，預約時就能從這份名單指派。</p>
+          <p className="text-muted-foreground mt-1 text-sm">管理攝影師與工作人員，預約時就能從這份名單指派；也可以在這裡開啟人員的後台登入權限。</p>
         </div>
         <button
           onClick={() => { setEditing(null); setFormOpen(true); }}
@@ -199,6 +226,13 @@ export function StaffManagement() {
                     <span>即將到來 {m.upcoming_count} 筆・累計 {m.booking_count} 筆預約</span>
                     {m.notes && <span className="truncate">{m.notes}</span>}
                   </div>
+                  <StaffAdminAccess
+                    staffId={m.id}
+                    staffName={m.name}
+                    entry={accessInfo?.access.find((a) => a.staff_id === m.id)}
+                    oaId={accessInfo?.oa_id ?? null}
+                    onChanged={loadAccess}
+                  />
                 </div>
                 <label className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground cursor-pointer shrink-0">
                   <Switch checked={m.active} onCheckedChange={(on) => handleActive(m, on)} />
@@ -230,6 +264,29 @@ export function StaffManagement() {
           </ul>
         )}
       </div>
+      {accessInfo && (accessInfo.other_admins.length > 0 || accessInfo.env_admin_count > 0) && (
+        <div className="bg-card rounded-xl border shadow-sm p-4 sm:px-6 space-y-2">
+          <p className="text-sm font-medium">其他後台管理員（不在上方人員名單內）</p>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            {accessInfo.other_admins.map((a) => (
+              <li key={a.id} className="flex items-center justify-between">
+                <span>{a.display_name || "（未命名）"}</span>
+                <button
+                  className="text-xs hover:text-destructive underline"
+                  onClick={async () => {
+                    if (!confirm(`移除管理員「${a.display_name}」？`)) return;
+                    await fetch(`/api/admin/admins/${a.id}`, { method: "DELETE" });
+                    loadAccess();
+                  }}
+                >
+                  移除
+                </button>
+              </li>
+            ))}
+            {accessInfo.env_admin_count > 0 && <li>另有 {accessInfo.env_admin_count} 位由系統環境變數設定（無法在此移除）</li>}
+          </ul>
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">有預約紀錄的人員不能刪除，請用「停用」：舊預約會保留他的名字，新預約就選不到他。</p>
     </div>
   );

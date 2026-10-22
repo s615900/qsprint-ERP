@@ -49,7 +49,9 @@ export async function POST(req: Request) {
         continue;
       }
       try {
-        await db.adminUsers.insert({ line_user_id: userId, display_name: invite.name });
+        // Binding again (e.g. new phone) replaces the LINE linked to this staff member before.
+        if (invite.staff_id !== null) await db.adminUsers.removeMany({ staff_id: invite.staff_id });
+        await db.adminUsers.insert({ line_user_id: userId, display_name: invite.name, staff_id: invite.staff_id });
         await replyLine(ev.replyToken, `綁定成功！${invite.name} 您好，現在可以用 LINE 登入後台了。`);
       } catch (err) {
         if ((err as { code?: number }).code !== 11000) throw err;

@@ -312,6 +312,7 @@ export interface AdminUser {
   id: number;
   line_user_id: string;
   display_name: string;
+  staff_id: number | null; // the 人員管理 record this login belongs to
   created_at: Date;
 }
 
@@ -319,6 +320,7 @@ export interface AdminUser {
 export interface AdminInvite {
   id: number;
   name: string;
+  staff_id: number | null;
   code: string; // "A" + 6 digits
   created_by: number | null;
   expires_at: Date;
