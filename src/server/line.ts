@@ -11,7 +11,6 @@ const PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 
 const STATE_COOKIE = "line_oauth_state";
-const PENDING_COOKIE = "line_pending";
 const TEN_MIN_S = 10 * 60;
 
 export function lineLoginConfigured(): boolean {
@@ -100,34 +99,6 @@ export async function fetchLineProfile(req: Request, code: string): Promise<Line
   if (!profileRes.ok) return null;
   const p = (await profileRes.json()) as { userId?: string; displayName?: string };
   return p.userId ? { userId: p.userId, displayName: p.displayName ?? "" } : null;
-}
-
-// A LINE user who has no member account yet; held in a short-lived signed cookie until they fill in name/phone.
-export async function setPendingProfile(profile: LineProfile): Promise<void> {
-  const store = await cookies();
-  store.set(PENDING_COOKIE, sign(JSON.stringify(profile)), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: TEN_MIN_S,
-    path: "/",
-  });
-}
-
-export async function getPendingProfile(): Promise<LineProfile | null> {
-  const store = await cookies();
-  const raw = store.get(PENDING_COOKIE)?.value;
-  const json = raw ? unsign(raw) : null;
-  if (!json) return null;
-  try {
-    return JSON.parse(json) as LineProfile;
-  } catch {
-    return null;
-  }
-}
-
-export async function clearPendingProfile(): Promise<void> {
-  (await cookies()).delete({ name: PENDING_COOKIE, path: "/" });
 }
 
 export function verifyWebhookSignature(rawBody: string, signature: string | null): boolean {

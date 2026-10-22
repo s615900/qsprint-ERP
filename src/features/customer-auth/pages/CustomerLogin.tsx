@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLoginCustomerAccount } from "@/lib/api-client";
@@ -14,12 +13,14 @@ const LINE_ERRORS: Record<string, string> = {
   cancelled: "已取消 LINE 登入",
   state: "LINE 登入已逾時，請再試一次",
   profile: "無法取得 LINE 資料，請再試一次",
+  not_member: "這個 LINE 帳號還不是會員。請向工作室索取會員啟用連結",
+  invite: "啟用連結無效或已過期，請向工作室索取新的連結",
+  taken: "此 LINE 帳號已綁定其他會員",
 };
 
 export function CustomerLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.toString();
   const getNextPath = () => searchParams.get("next") || "/book";
   const queryClient = useQueryClient();
   const login = useLoginCustomerAccount();
@@ -99,10 +100,7 @@ export function CustomerLogin() {
         <LineLoginButton next={getNextPath()} label="使用 LINE 登入" />
 
         <p className="text-center text-sm text-muted-foreground">
-          還沒有帳號？{" "}
-          <Link href={`/register${query ? `?${query}` : ""}`} className="text-primary font-medium hover:underline">
-            立即註冊
-          </Link>
+          還不是會員？請向工作室索取會員啟用連結
         </p>
       </div>
     </div>

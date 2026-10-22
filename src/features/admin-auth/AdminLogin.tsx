@@ -13,7 +13,7 @@ const ERRORS: Record<string, string> = {
 
 export function AdminLogin() {
   const params = useSearchParams();
-  const next = params.get("next") || "/";
+  const next = params.get("next") || "/dashboard";
   const invite = params.get("invite");
   const error = params.get("error") ?? params.get("line_error");
   const uid = params.get("uid");

@@ -58,6 +58,7 @@ export const db = {
     () => ({ reason: null, status: "有效" }),
     { updated: false },
   ),
+  memberInvites: new Repo<T.MemberInvite>("member_invites", () => ({ used_at: null }), { updated: false }),
   adminUsers: new Repo<T.AdminUser>("admin_users", () => ({ display_name: "" }), { updated: false }),
   adminInvites: new Repo<T.AdminInvite>("admin_invites", () => ({ created_by: null, used_at: null }), { updated: false }),
 };

@@ -40,7 +40,7 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { name: "儀表板", icon: LayoutDashboard, route: "/" },
+  { name: "儀表板", icon: LayoutDashboard, route: "/dashboard" },
   { name: "客戶管理", icon: Users, route: "/customers" },
   {
     name: "線上預約系統", icon: CalendarCheck, route: "/bookings",
@@ -70,7 +70,7 @@ const navItems: NavItem[] = [
 ];
 
 function isRouteActive(location: string, route: string) {
-  return location === route || (route !== "/" && location.startsWith(route + "/"));
+  return location === route || location.startsWith(route + "/");
 }
 
 // The most specific sub-route that contains the current path wins, so
@@ -104,7 +104,7 @@ function LogoutButton({ compact }: { compact?: boolean }) {
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+    <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
       <Camera className="w-5 h-5 text-sidebar-primary" />
       <span className="font-semibold text-sidebar-foreground text-lg tracking-wide">青春止秒攝影工作室</span>
     </Link>
@@ -246,7 +246,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Tablet: icon rail */}
       <aside className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-0 h-[100dvh]">
-        <Link href="/" aria-label="青春止秒攝影工作室" className="h-16 flex items-center justify-center border-b border-sidebar-border">
+        <Link href="/dashboard" aria-label="青春止秒攝影工作室" className="h-16 flex items-center justify-center border-b border-sidebar-border">
           <Camera className="w-5 h-5 text-sidebar-primary" />
         </Link>
         <RailNav location={location} />

@@ -2,6 +2,7 @@
 
 import { CompanyForm } from "../components/CompanyForm";
 import { AdminManager } from "../components/AdminManager";
+import { PublicLinks } from "../components/PublicLinks";
 import { MessageSquare, Calendar, Unplug } from "lucide-react";
 
 interface IntegrationConfig {
@@ -36,6 +37,8 @@ export function Settings() {
         <h1 className="text-3xl font-bold text-foreground tracking-tight">系統設定</h1>
         <p className="text-muted-foreground mt-1 text-sm">管理系統整合、通知與基本設定。</p>
       </div>
+
+      <PublicLinks />
 
       <CompanyForm />
 

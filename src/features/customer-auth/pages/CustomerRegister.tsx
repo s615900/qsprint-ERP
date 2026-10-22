@@ -3,96 +3,56 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useRegisterCustomerAccount } from "@/lib/api-client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Camera, UserPlus } from "lucide-react";
+import { Camera, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { LineLoginButton, OrDivider } from "../components/LineLoginButton";
 
+// Membership is by invitation: the studio creates the customer, then sends this page's link.
 export function CustomerRegister() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.toString();
-  const getNextPath = () => searchParams.get("next") || "/book";
+  const invite = searchParams.get("invite");
+  const next = searchParams.get("next") || "/book";
   const queryClient = useQueryClient();
-  const register = useRegisterCustomerAccount();
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
   const [password, setPassword] = useState("");
-
-  // Arrived from LINE Login with no member account yet: finish with name/phone (password optional).
-  const isLineSignup = searchParams.get("line") === "1";
-  const [lineName, setLineName] = useState("");
-  const [linePending, setLinePending] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isLineSignup) return;
-    fetch("/api/auth/line/register")
+    if (!invite) return;
+    fetch(`/api/auth/invite?token=${encodeURIComponent(invite)}`)
       .then(async (res) => {
         if (!res.ok) throw new Error();
-        const data = await res.json();
-        setLineName(data.display_name);
-        setName((n) => n || data.display_name);
+        setName((await res.json()).name);
       })
-      .catch(() => {
-        toast.error("LINE 登入已逾時，請重新操作");
-        router.replace("/login");
-      });
-  }, [isLineSignup, router]);
+      .catch(() => setInvalid(true));
+  }, [invite]);
 
-  const handleLineSubmit = async (e: React.FormEvent) => {
+  const activateWithPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone) {
-      toast.error("請填寫姓名與手機號碼");
-      return;
-    }
-    setLinePending(true);
+    setSaving(true);
     try {
-      const res = await fetch("/api/auth/line/register", {
+      const res = await fetch("/api/auth/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email: email || undefined, password: password || undefined }),
+        body: JSON.stringify({ token: invite, password }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        toast.error(body.error ?? "註冊失敗，請稍後再試");
+        toast.error((await res.json().catch(() => ({}))).error ?? "啟用失敗，請稍後再試");
         return;
       }
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast.success("註冊成功，LINE 已綁定");
-      router.push(getNextPath());
+      toast.success("會員已啟用");
+      router.push(next);
     } finally {
-      setLinePending(false);
+      setSaving(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !phone || !password) {
-      toast.error("請填寫姓名、手機號碼與密碼");
-      return;
-    }
-
-    register.mutate(
-      { data: { name, phone, password, email: email || undefined } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-          toast.success("註冊成功");
-          router.push(getNextPath());
-        },
-        onError: (err: any) => {
-          if (err?.status === 409) {
-            toast.error("此手機號碼已註冊過帳號，請改用登入");
-          } else {
-            toast.error("註冊失敗，請稍後再試");
-          }
-        },
-      }
-    );
-  };
+  const closed = !invite || invalid;
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center p-4">
@@ -102,76 +62,52 @@ export function CustomerRegister() {
       </div>
 
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl border border-border p-8 space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">建立會員帳號</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {isLineSignup ? `LINE 帳號「${lineName}」已驗證，請補充聯絡資料` : "註冊後即可線上預約並管理您的資料"}
-          </p>
-        </div>
-
-        <form onSubmit={isLineSignup ? handleLineSubmit : handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">姓名</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="例如：王小明"
-            />
+        {closed ? (
+          <div className="text-center space-y-3">
+            <h1 className="text-2xl font-bold text-foreground">會員由工作室邀請</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {invalid
+                ? "這個邀請連結無效或已過期，請向工作室索取新的連結。"
+                : "目前僅開放工作室建立的會員。如果你已經是客戶，請向工作室索取專屬的會員啟用連結。"}
+            </p>
+            <Link href="/login" className="inline-block text-primary font-medium hover:underline text-sm">
+              已啟用？前往登入
+            </Link>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">手機號碼</label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="0912-345-678"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">電子信箱 (選填)</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="example@email.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">密碼{isLineSignup ? " (選填，之後可用手機＋密碼登入)" : ""}</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="請設定密碼"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={register.isPending || linePending}
-            className="w-full h-11 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            {register.isPending ? "註冊中..." : "註冊並登入"}
-          </button>
-        </form>
-
-        {!isLineSignup && (
+        ) : (
           <>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-foreground">啟用會員</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {name ? `${name} 您好，選一種方式啟用就能線上預約` : "確認邀請連結中..."}
+              </p>
+            </div>
+
+            <LineLoginButton next={next} invite={invite!} label="使用 LINE 啟用（建議）" />
             <OrDivider />
-            <LineLoginButton next={getNextPath()} label="使用 LINE 註冊 / 登入" />
+
+            <form onSubmit={activateWithPassword} className="space-y-3">
+              <label className="text-sm font-medium leading-none">或設定密碼（之後用手機＋密碼登入）</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+                placeholder="至少 6 個字"
+                className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <button
+                type="submit"
+                disabled={saving || !name}
+                className="w-full h-11 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <KeyRound className="w-4 h-4" />
+                {saving ? "啟用中..." : "用密碼啟用"}
+              </button>
+            </form>
           </>
         )}
-
-        <p className="text-center text-sm text-muted-foreground">
-          已經有帳號了？{" "}
-          <Link href={`/login${query ? `?${query}` : ""}`} className="text-primary font-medium hover:underline">
-            前往登入
-          </Link>
-        </p>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Gatekeeper for the back office. Runs before every page/API request.
 // Public: customer-facing pages, the sign-by-link pages, and the few APIs they need.
 
-const ADMIN_PAGE_PREFIXES = ["/customers", "/bookings", "/products", "/quotes", "/orders", "/contracts", "/projects", "/accounting", "/staff", "/settings"];
+const ADMIN_PAGE_PREFIXES = ["/dashboard", "/customers", "/bookings", "/products", "/quotes", "/orders", "/contracts", "/projects", "/accounting", "/staff", "/settings"];
 
 const PUBLIC_API_PREFIXES = [
   "/api/auth/", // customer session + LINE Login
@@ -66,11 +66,11 @@ export async function proxy(req: NextRequest) {
     return NextResponse.json({ error: "請先登入管理後台" }, { status: 401 });
   }
 
-  const isAdminPage = pathname === "/" || ADMIN_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const isAdminPage = ADMIN_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (isAdminPage && !(await isAdmin(req))) {
     const url = req.nextUrl.clone();
     url.pathname = "/admin-login";
-    url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname + req.nextUrl.search)}`;
+    url.search = `?next=${encodeURIComponent(pathname + req.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

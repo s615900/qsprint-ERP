@@ -324,3 +324,13 @@ export interface AdminInvite {
   used_at: Date | null;
   created_at: Date;
 }
+
+// One-time link the studio gives a customer it created, so they can activate their member account.
+export interface MemberInvite {
+  id: number;
+  token: string;
+  customer_id: number;
+  expires_at: Date;
+  used_at: Date | null;
+  created_at: Date;
+}
