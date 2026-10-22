@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     if (!(await bindLineToCustomer(customer.id, profile))) {
       return NextResponse.redirect(`${origin}/login?line_error=taken`);
     }
-    await ensureAccount(customer, null);
+    await ensureAccount(customer);
     await setCustomerSessionCookie(customer.id);
     return NextResponse.redirect(`${origin}${saved.next}`);
   }

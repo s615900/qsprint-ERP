@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,7 +24,6 @@ const LINE_ERRORS: Record<string, string> = {
 };
 
 export function LineBindingCard() {
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [code, setCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -66,13 +65,6 @@ export function LineBindingCard() {
     }
   };
 
-  const unbind = async () => {
-    if (!window.confirm("確定要解除 LINE 綁定嗎？解除後將不再收到 LINE 通知。")) return;
-    await fetch("/api/auth/line/unbind", { method: "POST" });
-    queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-  };
-
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
       <div className="p-4 border-b border-border bg-muted/10 flex items-center gap-2">
@@ -84,11 +76,8 @@ export function LineBindingCard() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-medium">已綁定{data.display_name ? `：${data.display_name}` : ""}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">預約進度更新時會透過 LINE 通知您</p>
+              <p className="text-xs text-muted-foreground mt-0.5">這是您的登入帳號，預約進度更新時也會透過 LINE 通知您</p>
             </div>
-            <button onClick={unbind} className="text-xs text-muted-foreground hover:text-destructive underline">
-              解除綁定
-            </button>
           </div>
         ) : (
           <>

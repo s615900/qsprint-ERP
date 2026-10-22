@@ -15,13 +15,8 @@ export async function peekMemberInvite(token: string): Promise<Customer | undefi
   return invite ? db.customers.get(invite.customer_id) : undefined;
 }
 
-// A customer created in the back office has no login yet; give them one (password optional).
-// When a password is supplied for an existing account it replaces the old one, so a fresh invite doubles
-// as a password reset.
-export async function ensureAccount(customer: Customer, passwordHash: string | null) {
+// A customer created in the back office has no login record yet; create it when they activate with LINE.
+export async function ensureAccount(customer: Customer) {
   const existing = await db.customerAccounts.findOne({ customer_id: customer.id });
-  if (existing) {
-    return passwordHash ? ((await db.customerAccounts.update(existing.id, { password_hash: passwordHash })) ?? existing) : existing;
-  }
-  return db.customerAccounts.insert({ customer_id: customer.id, phone: customer.phone, password_hash: passwordHash });
+  return existing ?? db.customerAccounts.insert({ customer_id: customer.id, phone: customer.phone, password_hash: null });
 }

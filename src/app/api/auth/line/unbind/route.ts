@@ -1,11 +1,7 @@
-import { db } from "@/server/db";
-import { getCustomerId } from "@/server/session";
-import { error, json } from "@/server/http";
+import { error } from "@/server/http";
 
-// POST /api/auth/line/unbind
+// POST /api/auth/line/unbind — closed: LINE is the only way to sign in, so unbinding would lock the member out.
+// To change the LINE account, the studio issues a fresh invite link.
 export async function POST() {
-  const customerId = await getCustomerId();
-  if (customerId === undefined) return error("Not logged in", 401);
-  await db.customers.update(customerId, { line_user_id: null, line_display_name: null, line_bound: false });
-  return json({ success: true });
+  return error("LINE 是唯一的登入方式，無法自行解除。如需更換 LINE 帳號，請聯絡工作室", 403);
 }

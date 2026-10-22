@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 const LINKS = [
   { path: "/book", title: "線上預約頁", note: "客戶選攝影師、方案、時段並送出預約。需先是會員並登入。" },
-  { path: "/login", title: "會員登入頁", note: "已啟用的會員用 LINE 或手機＋密碼登入。" },
+  { path: "/login", title: "會員登入頁", note: "已啟用的會員用 LINE 登入。" },
   { path: "/account", title: "會員中心", note: "會員查看資料、綁定 LINE。" },
 ];
 
