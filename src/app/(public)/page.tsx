@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Camera, CalendarCheck, LogIn } from "lucide-react";
+import { Camera, CalendarCheck } from "lucide-react";
 
 export const metadata: Metadata = { title: "青春止秒攝影工作室" };
 
@@ -22,16 +22,10 @@ export default function Home() {
           >
             <CalendarCheck className="w-4 h-4" /> 線上預約
           </Link>
-          <Link
-            href="/login"
-            className="w-full h-11 border border-input bg-background rounded-lg font-medium hover:bg-accent transition-colors flex items-center justify-center gap-2"
-          >
-            <LogIn className="w-4 h-4" /> 會員登入
-          </Link>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          第一次使用請按「會員登入」，用 LINE 登入後補充姓名與手機即可註冊。
+          按「線上預約」，用 LINE 登入後補充姓名與手機即可預約。
         </p>
       </div>
       <Link href="/admin-login" className="mt-6 text-xs text-muted-foreground/70 hover:text-foreground">
