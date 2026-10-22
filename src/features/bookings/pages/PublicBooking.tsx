@@ -11,7 +11,7 @@ import {
 } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-client/custom-fetch";
 import { format, addDays, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock, ChevronRight as ArrowRight } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomerSession } from "@/features/customer-auth/hooks/useCustomerSession";
 
@@ -213,9 +213,18 @@ export function PublicBooking() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-border flex-1 overflow-hidden flex flex-col">
-          {/* Header area with back button if not step 1 */}
-          <div className="p-6 border-b border-border flex items-center justify-between bg-muted/10">
-            <div>
+          {/* Header: back button sits on its own line on phones (top-right beside the title on wider screens) */}
+          <div className="p-4 sm:p-6 border-b border-border bg-muted/10 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={() => setStep(step - 1 as any)}
+                className="self-start sm:order-last shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 bg-white border shadow-sm pl-2 pr-3 py-1.5 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" /> 上一步
+              </button>
+            )}
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-foreground">
                 {step === 1 && "請選擇攝影師"}
                 {step === 2 && "請選擇您需要的服務"}
@@ -224,22 +233,16 @@ export function PublicBooking() {
                 {step === 5 && "請填寫聯絡資料"}
               </h2>
               {step > 1 && (
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                  已選: <span className="font-medium text-foreground">{staffName}</span>
-                  {serviceName && <><ArrowRight className="w-3 h-3 mx-0.5" /> <span className="font-medium text-foreground">{serviceName}</span></>}
-                  {date && <><ArrowRight className="w-3 h-3 mx-0.5" /> <span className="font-medium text-foreground">{date.replace(/-/g, '/')}</span></>}
-                  {timeSlot && <><ArrowRight className="w-3 h-3 mx-0.5" /> <span className="font-medium text-foreground">{timeSlot}</span></>}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-muted-foreground">已選</span>
+                  {[staffName, serviceName, date && date.replace(/-/g, '/'), timeSlot].filter(Boolean).map((label) => (
+                    <span key={label} className="px-2 py-0.5 rounded-full bg-white border border-border font-medium text-foreground">
+                      {label}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
-            {step > 1 && (
-              <button 
-                onClick={() => setStep(step - 1 as any)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 bg-white border shadow-sm px-3 py-1.5 rounded-lg transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" /> 上一步
-              </button>
-            )}
           </div>
 
           <div className="p-6 md:p-8 flex-1">
