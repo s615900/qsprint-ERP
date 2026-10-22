@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { isUniqueViolation } from "@/server/staff";
 import { error, json, noContent, readJson } from "@/server/http";
 import { ProductBody } from "@/server/products";
+import { ensureCategory } from "@/server/productCategories";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -16,6 +17,7 @@ export async function PUT(req: Request, ctx: Ctx) {
   if (id === null) return error("Invalid id", 400);
   const parsed = ProductBody.safeParse(await readJson(req));
   if (!parsed.success) return error("請填寫商品名稱、類別與價格", 400);
+  await ensureCategory(parsed.data.category);
   try {
     const row = await db.products.update(id, parsed.data);
     return row ? json(row) : error("Not found", 404);

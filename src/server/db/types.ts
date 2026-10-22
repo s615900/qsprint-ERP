@@ -327,3 +327,10 @@ export interface AdminInvite {
   used_at: Date | null;
   created_at: Date;
 }
+
+export interface ProductCategory {
+  id: number;
+  name: string;
+  sort_order: number;
+  created_at: Date;
+}

@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { isUniqueViolation } from "@/server/staff";
 import { error, json, readJson } from "@/server/http";
 import { ProductBody, listProducts } from "@/server/products";
+import { ensureCategory } from "@/server/productCategories";
 
 // GET /api/products — everything, including hidden items (admin)
 export async function GET() {
@@ -12,6 +13,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const parsed = ProductBody.safeParse(await readJson(req));
   if (!parsed.success) return error("請填寫商品名稱、類別與價格", 400);
+  await ensureCategory(parsed.data.category);
   const existing = await listProducts({ activeOnly: false });
   try {
     const row = await db.products.insert({

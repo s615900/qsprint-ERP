@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, Package as PackageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { formatTWD } from "@/lib/money";
+import { CategoryManager, type Category } from "./CategoryManager";
 
 type Product = {
   id: number;
@@ -16,26 +17,31 @@ type Product = {
   active: boolean;
 };
 
-const CATEGORIES = ["新人婚紗", "親子寫真", "個人寫真", "企業商業客戶"];
 
 const inputCls =
   "flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 type Draft = Omit<Product, "id">;
-const emptyDraft = (): Draft => ({ name: "", description: "", price: 0, category: CATEGORIES[0], features: [], active: true });
+const emptyDraft = (category: string): Draft => ({ name: "", description: "", price: 0, category, features: [], active: true });
 
 function ProductForm({
   initial,
+  categories,
   saving,
   onSubmit,
   onCancel,
+  onCreateCategory,
 }: {
   initial?: Product;
+  categories: string[];
+  onCreateCategory: (name: string) => Promise<boolean>;
   saving: boolean;
   onSubmit: (d: Draft) => void;
   onCancel: () => void;
 }) {
-  const [d, setD] = useState<Draft>(initial ? { ...initial } : emptyDraft());
+  const [d, setD] = useState<Draft>(initial ? { ...initial } : emptyDraft(categories[0] ?? ""));
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
   const [featuresText, setFeaturesText] = useState((initial?.features ?? []).join("\n"));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((prev) => ({ ...prev, [k]: v }));
 
@@ -60,16 +66,46 @@ function ProductForm({
         </label>
         <label className="space-y-1">
           <span className="text-xs text-muted-foreground">類別 *</span>
-          <input
-            required
-            list="product-categories"
-            value={d.category}
-            onChange={(e) => set("category", e.target.value)}
-            className={inputCls}
-          />
-          <datalist id="product-categories">
-            {CATEGORIES.map((c) => <option key={c} value={c} />)}
-          </datalist>
+          {addingCategory ? (
+            <div className="flex gap-2">
+              <input
+                autoFocus
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                placeholder="新類別名稱"
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  const name = categoryName.trim();
+                  if (!name) return;
+                  if (await onCreateCategory(name)) {
+                    set("category", name);
+                    setAddingCategory(false);
+                    setCategoryName("");
+                  }
+                }}
+                className="shrink-0 h-9 px-3 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                新增
+              </button>
+              <button type="button" onClick={() => setAddingCategory(false)} className="shrink-0 h-9 px-3 rounded-md text-sm border border-input bg-background hover:bg-accent">
+                取消
+              </button>
+            </div>
+          ) : (
+            <select
+              required
+              value={d.category}
+              onChange={(e) => (e.target.value === "__new__" ? setAddingCategory(true) : set("category", e.target.value))}
+              className={inputCls}
+            >
+              {!categories.includes(d.category) && d.category && <option value={d.category}>{d.category}</option>}
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="__new__">＋ 新增類別…</option>
+            </select>
+          )}
         </label>
         <label className="space-y-1">
           <span className="text-xs text-muted-foreground">價格（含稅，元）*</span>
@@ -123,6 +159,23 @@ export function ProductManagement() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [saving, setSaving] = useState(false);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
+  const [managingCategories, setManagingCategories] = useState(false);
+
+  const loadCategories = useCallback(async () => {
+    const res = await fetch("/api/product-categories");
+    if (res.ok) setCategoryList(await res.json());
+  }, []);
+
+  const createCategory = async (name: string) => {
+    const res = await fetch("/api/product-categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+    if (!res.ok) {
+      toast.error((await res.json().catch(() => ({}))).error ?? "新增類別失敗");
+      return false;
+    }
+    await loadCategories();
+    return true;
+  };
 
   const load = useCallback(async () => {
     const res = await fetch("/api/products");
@@ -131,7 +184,8 @@ export function ProductManagement() {
 
   useEffect(() => {
     load();
-  }, [load]);
+    loadCategories();
+  }, [load, loadCategories]);
 
   const save = async (draft: Draft) => {
     setSaving(true);
@@ -173,7 +227,11 @@ export function ProductManagement() {
     load();
   };
 
-  const categories = [...new Set((products ?? []).map((p) => p.category))];
+  // Group by the category list's order; any category not on the list yet goes last.
+  const listed = categoryList.map((c) => c.name);
+  const categories = [...listed, ...new Set((products ?? []).map((p) => p.category).filter((c) => !listed.includes(c)))].filter((c) =>
+    (products ?? []).some((p) => p.category === c),
+  );
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -185,17 +243,38 @@ export function ProductManagement() {
           </p>
         </div>
         {editing === null && (
-          <button
-            onClick={() => setEditing("new")}
-            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4" /> 新增商品
-          </button>
+          <div className="shrink-0 flex gap-2">
+            <button
+              onClick={() => setManagingCategories((v) => !v)}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent"
+            >
+              類別管理
+            </button>
+            <button
+              onClick={() => setEditing("new")}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4" /> 新增商品
+            </button>
+          </div>
         )}
       </div>
 
+      {managingCategories && (
+        <CategoryManager
+          categories={categoryList}
+          onChanged={() => {
+            loadCategories();
+            load();
+          }}
+          onClose={() => setManagingCategories(false)}
+        />
+      )}
+
       {editing !== null && (
         <ProductForm
+          categories={listed}
+          onCreateCategory={createCategory}
           key={editing === "new" ? "new" : editing.id}
           initial={editing === "new" ? undefined : editing}
           saving={saving}

@@ -48,6 +48,7 @@ export const db = {
   products: new Repo<T.Product>("products", () => ({
     description: "", price: 0, category: "個人寫真", features: [], active: true, sort_order: 0,
   })),
+  productCategories: new Repo<T.ProductCategory>("product_categories", () => ({ sort_order: 0 }), { updated: false }),
   invoiceTracks: new Repo<T.InvoiceTrack>("invoice_tracks", () => ({}), { updated: false }),
   invoices: new Repo<T.Invoice>("invoices", () => ({
     track_id: null, customer_id: null, order_id: null, buyer_tax_id: null, tax_type: "應稅", items: [], carrier: null,

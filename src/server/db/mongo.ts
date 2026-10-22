@@ -199,6 +199,8 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
     plain("transactions", { date: 1 }),
     unique("staff", { id: 1 }),
     unique("staff", { name: 1 }),
+    unique("product_categories", { id: 1 }),
+    unique("product_categories", { name: 1 }),
     unique("products", { id: 1 }),
     unique("products", { name: 1 }),
     unique("invoice_tracks", { id: 1 }),
