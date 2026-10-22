@@ -4,7 +4,8 @@ import { CreateBookingBody } from "@/lib/api-zod";
 import { DATE_RE, error, json, readJson } from "@/server/http";
 import { isBookable } from "@/server/availability";
 import { toBookingResponses } from "@/server/bookings";
-import { pushToCustomer } from "@/server/line";
+import { accountLink, pushMessagesToCustomer } from "@/server/line";
+import { bookingCard } from "@/server/lineCards";
 import { escapeRegex } from "@/server/search";
 
 // GET /api/bookings
@@ -61,9 +62,6 @@ export async function POST(req: Request) {
   });
 
   const [created] = await toBookingResponses([row]);
-  await pushToCustomer(
-    row.customer_id,
-    `已收到您的預約！\n單號：${row.booking_number}\n服務：${row.service_type}\n時間：${row.date} ${row.time_slot}\n我們會盡快與您確認。`,
-  );
+  await pushMessagesToCustomer(row.customer_id, [bookingCard("created", row, accountLink())]);
   return json(created, 201);
 }

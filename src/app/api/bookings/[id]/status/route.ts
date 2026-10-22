@@ -2,7 +2,8 @@ import { db } from "@/server/db";
 import { UpdateBookingStatusParams, UpdateBookingStatusBody } from "@/lib/api-zod";
 import { error, json, readJson } from "@/server/http";
 import { toBookingResponses } from "@/server/bookings";
-import { pushToCustomer } from "@/server/line";
+import { accountLink, pushMessagesToCustomer } from "@/server/line";
+import { bookingCard } from "@/server/lineCards";
 
 // PATCH /api/bookings/:id/status
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -14,10 +15,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const row = await db.bookings.update(params.data.id, { status: parsed.data.status });
   if (!row) return error("Booking not found", 404);
 
-  await pushToCustomer(
-    row.customer_id,
-    `您的預約狀態更新為「${row.status}」\n單號：${row.booking_number}\n服務：${row.service_type}（${row.date} ${row.time_slot}）`,
-  );
+  await pushMessagesToCustomer(row.customer_id, [bookingCard("status", row, accountLink())]);
 
   const [full] = await toBookingResponses([row]);
   return json(full);

@@ -164,10 +164,17 @@ export function pushLine(lineUserId: string, text: string): Promise<boolean> {
   return callBot(PUSH_URL, { to: lineUserId, messages: [{ type: "text", text }] });
 }
 
-export async function pushToCustomer(customerId: number | null | undefined, text: string): Promise<void> {
+// Push any LINE message objects (e.g. a Flex card) to a customer who has linked LINE.
+export async function pushMessagesToCustomer(customerId: number | null | undefined, messages: unknown[]): Promise<void> {
   if (!customerId || !lineBotConfigured()) return;
   const c = await db.customers.get(customerId);
-  if (c?.line_user_id) await pushLine(c.line_user_id, text);
+  if (c?.line_user_id) await callBot(PUSH_URL, { to: c.line_user_id, messages });
+}
+
+// Public member-center link for the card button; omitted when the site address isn't configured.
+export function accountLink(): string | undefined {
+  const origin = process.env.APP_URL?.replace(/\/$/, "");
+  return origin ? `${origin}/account` : undefined;
 }
 
 // Attach a LINE identity to a customer. Returns false when that LINE user already belongs to someone else.
