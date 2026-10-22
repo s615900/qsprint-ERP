@@ -163,6 +163,7 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
   await d.collection("admin_invites").dropIndex("token_1").catch(() => undefined);
   await d.collection("admin_invites").deleteMany({ code: { $exists: false } }); // old link-style invites
   await d.collection("member_invites").drop().catch(() => undefined);
+  await d.collection("products").updateMany({ duration: { $exists: true } }, { $unset: { duration: "" } }); // 拍攝時間欄位已移除
 
   await Promise.all([
     unique("customers", { id: 1 }),

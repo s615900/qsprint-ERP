@@ -9,7 +9,6 @@ export async function GET() {
       id: p.id,
       name: p.name,
       description: p.description,
-      duration: p.duration,
       price: p.price,
       category: p.category,
       features: p.features,

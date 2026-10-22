@@ -294,10 +294,7 @@ export function PublicBooking() {
                       <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{pkg.name}</h3>
                       <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{pkg.description}</p>
                       
-                      <div className="flex items-center justify-between mt-6">
-                        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-                          <Clock className="w-4 h-4" /> {pkg.duration}
-                        </div>
+                      <div className="flex items-center justify-end mt-6">
                         <div className="text-lg font-bold text-foreground">
                           NT$ {pkg.price.toLocaleString()}
                         </div>

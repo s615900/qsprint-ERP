@@ -223,7 +223,7 @@ export function NewBooking() {
               >
                 <option value="">選擇服務項目...</option>
                 {packages?.map(pkg => (
-                  <option key={pkg.id} value={pkg.name}>{pkg.name} ({pkg.duration})</option>
+                  <option key={pkg.id} value={pkg.name}>{pkg.name}</option>
                 ))}
               </select>
             </div>

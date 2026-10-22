@@ -208,7 +208,6 @@ export interface Product extends Ts {
   id: number;
   name: string;
   description: string;
-  duration: string;
   price: number;
   category: string;
   features: string[];

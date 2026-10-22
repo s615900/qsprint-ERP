@@ -10,7 +10,6 @@ export interface Package {
   id: number;
   name: string;
   description: string;
-  duration: string;
   price: number;
   category?: string;
   features?: string[];

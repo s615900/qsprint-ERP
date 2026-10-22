@@ -46,7 +46,7 @@ export const db = {
   })),
   staff: new Repo<T.Staff>("staff", () => ({ role: "攝影師", phone: null, notes: null, active: true })),
   products: new Repo<T.Product>("products", () => ({
-    description: "", duration: "", price: 0, category: "個人寫真", features: [], active: true, sort_order: 0,
+    description: "", price: 0, category: "個人寫真", features: [], active: true, sort_order: 0,
   })),
   invoiceTracks: new Repo<T.InvoiceTrack>("invoice_tracks", () => ({}), { updated: false }),
   invoices: new Repo<T.Invoice>("invoices", () => ({

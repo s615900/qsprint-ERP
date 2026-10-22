@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, Package as PackageIcon, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Package as PackageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { formatTWD } from "@/lib/money";
@@ -10,7 +10,6 @@ type Product = {
   id: number;
   name: string;
   description: string;
-  duration: string;
   price: number;
   category: string;
   features: string[];
@@ -23,7 +22,7 @@ const inputCls =
   "flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 type Draft = Omit<Product, "id">;
-const emptyDraft = (): Draft => ({ name: "", description: "", duration: "", price: 0, category: CATEGORIES[0], features: [], active: true });
+const emptyDraft = (): Draft => ({ name: "", description: "", price: 0, category: CATEGORIES[0], features: [], active: true });
 
 function ProductForm({
   initial,
@@ -82,10 +81,6 @@ function ProductForm({
             onChange={(e) => set("price", Math.max(0, Math.round(Number(e.target.value) || 0)))}
             className={inputCls}
           />
-        </label>
-        <label className="space-y-1">
-          <span className="text-xs text-muted-foreground">拍攝時間</span>
-          <input value={d.duration} onChange={(e) => set("duration", e.target.value)} className={inputCls} placeholder="例：2小時" />
         </label>
         <label className="space-y-1">
           <span className="text-xs text-muted-foreground">簡短說明</span>
@@ -231,11 +226,6 @@ export function ProductManagement() {
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-semibold leading-tight">{p.name}</h3>
-                          {p.duration && (
-                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                              <Clock className="w-3 h-3" /> {p.duration}
-                            </p>
-                          )}
                         </div>
                       </div>
                       <span className="text-lg font-semibold tabular-nums text-primary shrink-0">{formatTWD(p.price)}</span>

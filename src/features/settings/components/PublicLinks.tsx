@@ -6,8 +6,6 @@ import { toast } from "sonner";
 
 const LINKS = [
   { path: "/book", title: "線上預約頁", note: "客戶選攝影師、方案、時段並送出預約。未登入會先請他用 LINE 註冊 / 登入。" },
-  { path: "/login", title: "會員登入頁", note: "會員用 LINE 登入；第一次使用會自動帶去註冊。" },
-  { path: "/account", title: "會員中心", note: "會員查看資料、綁定 LINE。" },
 ];
 
 export function PublicLinks() {

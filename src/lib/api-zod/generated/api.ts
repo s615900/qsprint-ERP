@@ -898,7 +898,6 @@ export const ListPackagesResponseItem = zod.object({
   id: zod.number().int(),
   name: zod.string(),
   description: zod.string(),
-  duration: zod.string(),
   price: zod.number().int(),
   category: zod.string().optional(),
   features: zod.array(zod.string()).optional(),

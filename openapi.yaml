@@ -1870,15 +1870,13 @@ components:
     # ── Package ───────────────────────────────────────────────
     Package:
       type: object
-      required: [id, name, description, duration, price]
+      required: [id, name, description, price]
       properties:
         id:
           type: integer
         name:
           type: string
         description:
-          type: string
-        duration:
           type: string
         price:
           type: integer
