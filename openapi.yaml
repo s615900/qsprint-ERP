@@ -1,0 +1,2813 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Photography Studio Management System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: customers
+    description: Customer management
+  - name: bookings
+    description: Booking management
+  - name: dashboard
+    description: Dashboard summary data
+  - name: availability
+    description: Slot availability management
+  - name: auth
+    description: Customer self-service account, login/session, and profile change requests
+  - name: quotes
+    description: Quotes
+  - name: orders
+    description: Orders
+  - name: accounting
+    description: Ledger and accounting summary
+  - name: staff
+    description: Photographers and other staff
+  - name: contracts
+    description: Service contracts with customer and studio signatures
+  - name: signing
+    description: Public, token-protected pages where customers review and sign
+  - name: projects
+    description: Shoot projects on the progress board
+  - name: invoicing
+    description: Invoice number blocks, output invoices, allowances, business entity
+  - name: tax
+    description: Business tax (401) reporting
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── Dashboard ───────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-bookings:
+    get:
+      operationId: getDashboardRecentBookings
+      tags: [dashboard]
+      summary: Recent bookings for dashboard
+      responses:
+        "200":
+          description: List of recent bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /dashboard/recent-customers:
+    get:
+      operationId: getDashboardRecentCustomers
+      tags: [dashboard]
+      summary: Recent customers for dashboard
+      responses:
+        "200":
+          description: List of recent customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+
+  # ── Customers ───────────────────────────────────────────────
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers with optional filters
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name, phone, or customer number
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [新人婚紗, 親子寫真, 個人寫真, 企業商業客戶]
+          description: Filter by customer category
+        - name: member_tier
+          in: query
+          schema:
+            type: string
+            enum: [一般, VIP, VVIP]
+          description: Filter by member tier
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: Filter by tag
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    put:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /customers/{id}/interactions:
+    get:
+      operationId: listCustomerInteractions
+      tags: [customers]
+      summary: Get interaction history for a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Interaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Interaction"
+    post:
+      operationId: createCustomerInteraction
+      tags: [customers]
+      summary: Add a new interaction/note for a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionInput"
+      responses:
+        "201":
+          description: Created interaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interaction"
+
+  /customers/{id}/bookings:
+    get:
+      operationId: listCustomerBookings
+      tags: [customers]
+      summary: Get all bookings for a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /customers/{id}/change-requests:
+    get:
+      operationId: listCustomerChangeRequests
+      tags: [customers]
+      summary: List profile change requests submitted by a customer (admin review)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Change request list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChangeRequest"
+
+  /customers/{id}/change-requests/{requestId}:
+    patch:
+      operationId: reviewCustomerChangeRequest
+      tags: [customers]
+      summary: Approve or reject a customer's profile change request (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeRequestReviewInput"
+      responses:
+        "200":
+          description: Reviewed change request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangeRequest"
+        "404":
+          description: Not found
+
+  # ── Bookings ────────────────────────────────────────────────
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List all bookings with optional filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [諮詢, 已預約, 已拍攝, 修圖中, 交件, 結案]
+          description: Filter by booking status
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by date (YYYY-MM-DD)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by customer name, service type, or booking number
+      responses:
+        "200":
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new booking (public-facing or admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Created booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get a booking by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+    put:
+      operationId: updateBooking
+      tags: [bookings]
+      summary: Update a booking (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingUpdate"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+    delete:
+      operationId: deleteBooking
+      tags: [bookings]
+      summary: Delete a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /bookings/{id}/status:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status only
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdate"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}/convert:
+    post:
+      operationId: convertBookingToOrder
+      tags: [bookings]
+      summary: Create an order from a booking (priced from the matching package)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "409":
+          description: Booking already has an order
+
+  # ── Availability / Slots ─────────────────────────────────────
+  /availability:
+    get:
+      operationId: listAvailability
+      tags: [availability]
+      summary: Get available slots for a date range
+      parameters:
+        - name: staff_id
+          in: query
+          schema:
+            type: integer
+          description: Photographer; omitted = any photographer
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Available slots by date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DayAvailability"
+
+  /availability/slots:
+    get:
+      operationId: getAvailableSlots
+      tags: [availability]
+      summary: Get available time slots for a specific date
+      parameters:
+        - name: staff_id
+          in: query
+          schema:
+            type: integer
+          description: Photographer; omitted = any photographer
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Time slots for the date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSlot"
+
+  /availability/schedule:
+    get:
+      operationId: getAvailabilitySchedule
+      tags: [availability]
+      summary: A photographer's weekly opening template (admin)
+      parameters:
+        - name: staff_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilitySchedule"
+
+  /availability/weekly:
+    put:
+      operationId: updateWeeklySchedule
+      tags: [availability]
+      summary: Replace the weekly opening template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeeklyScheduleInput"
+      responses:
+        "200":
+          description: Updated schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilitySchedule"
+
+  /availability/overrides:
+    put:
+      operationId: setAvailabilityOverrides
+      tags: [availability]
+      summary: Set opening periods for specific dates (slots null = back to weekly default, [] = closed)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkOverrideInput"
+      responses:
+        "204":
+          description: Saved
+
+  /availability/month:
+    get:
+      operationId: getAvailabilityMonth
+      tags: [availability]
+      summary: Per-day opening plan and bookings for one month (admin calendar)
+      parameters:
+        - name: staff_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+          description: YYYY-MM
+      responses:
+        "200":
+          description: Days of the month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthDay"
+
+  # ── Staff ───────────────────────────────────────────────────
+  /staff:
+    get:
+      operationId: listStaff
+      tags: [staff]
+      summary: List staff (active only unless include_inactive=true)
+      parameters:
+        - name: include_inactive
+          in: query
+          schema:
+            type: string
+            enum: ["true", "false"]
+      responses:
+        "200":
+          description: Staff list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StaffMember"
+    post:
+      operationId: createStaff
+      tags: [staff]
+      summary: Add a staff member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+        "409":
+          description: Name already used
+
+  /staff/{id}:
+    put:
+      operationId: updateStaff
+      tags: [staff]
+      summary: Update a staff member (a rename is applied to their bookings too)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+        "409":
+          description: Name already used
+    delete:
+      operationId: deleteStaff
+      tags: [staff]
+      summary: Delete a staff member who has never been assigned a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "409":
+          description: Has bookings — deactivate instead
+
+  /photographers:
+    get:
+      operationId: listPhotographers
+      tags: [availability]
+      summary: Bookable photographers (public — names only)
+      responses:
+        "200":
+          description: Photographers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Photographer"
+
+  /packages:
+    get:
+      operationId: listPackages
+      tags: [bookings]
+      summary: List photography packages/plans
+      responses:
+        "200":
+          description: Package list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+
+  # ── Auth (customer self-service) ─────────────────────────────
+  /auth/register:
+    post:
+      operationId: registerCustomerAccount
+      tags: [auth]
+      summary: Register a new customer account (phone + password). Auto-links to an existing customer record with the same phone if one exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered and logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "409":
+          description: Phone number already registered
+
+  /auth/login:
+    post:
+      operationId: loginCustomerAccount
+      tags: [auth]
+      summary: Log in with phone + password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logoutCustomerAccount
+      tags: [auth]
+      summary: Log out the current customer session
+      responses:
+        "204":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getCurrentCustomer
+      tags: [auth]
+      summary: Get the currently logged-in customer's profile
+      responses:
+        "200":
+          description: Current customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "401":
+          description: Not logged in
+
+  /auth/change-requests:
+    get:
+      operationId: listMyChangeRequests
+      tags: [auth]
+      summary: List the current customer's own profile change requests
+      responses:
+        "200":
+          description: Change request list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChangeRequest"
+        "401":
+          description: Not logged in
+    post:
+      operationId: createMyChangeRequest
+      tags: [auth]
+      summary: Submit a profile change request (name/phone/email) for admin review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeRequestInput"
+      responses:
+        "201":
+          description: Created change request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangeRequest"
+        "401":
+          description: Not logged in
+
+  # ── Quotes ──────────────────────────────────────────────────
+  /quotes:
+    get:
+      operationId: listQuotes
+      tags: [quotes]
+      summary: List quotes with optional filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [草稿, 已送出, 已接受, 已拒絕]
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by contact name, title, or quote number
+        - name: customer_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quote list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quote"
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Create a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Created quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}:
+    get:
+      operationId: getQuote
+      tags: [quotes]
+      summary: Get a quote by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quote detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          description: Not found
+    put:
+      operationId: updateQuote
+      tags: [quotes]
+      summary: Update a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteUpdate"
+      responses:
+        "200":
+          description: Updated quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+    delete:
+      operationId: deleteQuote
+      tags: [quotes]
+      summary: Delete a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /quotes/{id}/convert:
+    post:
+      operationId: convertQuoteToOrder
+      tags: [quotes]
+      summary: Turn a quote into an order (marks the quote 已接受)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "409":
+          description: Already converted
+
+  # ── Orders ──────────────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders with optional filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [已成立, 製作中, 已交付, 已結案, 已取消]
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by contact name, title, or order number
+        - name: customer_id
+          in: query
+          schema:
+            type: integer
+        - name: unpaid
+          in: query
+          schema:
+            type: boolean
+          description: Only orders with an outstanding balance
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+    put:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    delete:
+      operationId: deleteOrder
+      tags: [orders]
+      summary: Delete an order (its payments stay in the books, unlinked)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Accounting ──────────────────────────────────────────────
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [accounting]
+      summary: List ledger entries
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [收入, 支出]
+        - name: month
+          in: query
+          schema:
+            type: string
+          description: Filter by month (YYYY-MM)
+        - name: order_id
+          in: query
+          schema:
+            type: integer
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: Filter by two-month tax period (YYYY-MM of the first month)
+      responses:
+        "200":
+          description: Ledger entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      operationId: createTransaction
+      tags: [accounting]
+      summary: Record income/expense (an income row with order_id is an order payment)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Created entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}:
+    put:
+      operationId: updateTransaction
+      tags: [accounting]
+      summary: Update a ledger entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    delete:
+      operationId: deleteTransaction
+      tags: [accounting]
+      summary: Delete a ledger entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /accounting/summary:
+    get:
+      operationId: getAccountingSummary
+      tags: [accounting]
+      summary: Monthly income/expense for a year, plus outstanding receivables
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountingSummary"
+
+  # ── Quote signing / contracts ───────────────────────────────
+  /quotes/{id}/sign-link:
+    post:
+      operationId: createQuoteSignLink
+      tags: [quotes]
+      summary: Create the public link the customer opens to review and sign a quote
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Sign link", content: { application/json: { schema: { $ref: "#/components/schemas/SignLink" } } } }
+        "404": { description: "Not found" }
+
+  /quotes/{id}/contract:
+    post:
+      operationId: createContractFromQuote
+      tags: [contracts]
+      summary: Create a draft contract from a quote
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "201": { description: "Created contract", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+        "404": { description: "Not found" }
+
+  /contracts:
+    get:
+      operationId: listContracts
+      tags: [contracts]
+      summary: List contracts
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [草稿, 已發送, 已簽約, 已結案, 作廢] } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: customer_id, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: "Contract list", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Contract" } } } } }
+    post:
+      operationId: createContract
+      tags: [contracts]
+      summary: Create a contract
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ContractInput" } } } }
+      responses:
+        "201": { description: "Created contract", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+
+  /contracts/{id}:
+    get:
+      operationId: getContract
+      tags: [contracts]
+      summary: Get a contract (with signatures)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Contract", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+        "404": { description: "Not found" }
+    put:
+      operationId: updateContract
+      tags: [contracts]
+      summary: Update a contract (content is locked after the customer signs)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ContractUpdate" } } } }
+      responses:
+        "200": { description: "Updated contract", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+        "409": { description: "Content locked" }
+    delete:
+      operationId: deleteContract
+      tags: [contracts]
+      summary: Delete an unsigned contract
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: "Deleted" }
+        "409": { description: "Already signed — void it instead" }
+
+  /contracts/{id}/sign-link:
+    post:
+      operationId: createContractSignLink
+      tags: [contracts]
+      summary: Create the public link the customer opens to sign (draft becomes 已發送)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Sign link", content: { application/json: { schema: { $ref: "#/components/schemas/SignLink" } } } }
+
+  /contracts/{id}/staff-sign:
+    post:
+      operationId: signContractAsStaff
+      tags: [contracts]
+      summary: Studio-side signature
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SignInput" } } } }
+      responses:
+        "200": { description: "Signed contract", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+
+  /contracts/{id}/revise:
+    post:
+      operationId: reviseContract
+      tags: [contracts]
+      summary: Void this contract and create a fresh draft copy without signatures
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "201": { description: "New draft", content: { application/json: { schema: { $ref: "#/components/schemas/Contract" } } } }
+
+  /quote-sign/{token}:
+    get:
+      operationId: getPublicQuote
+      tags: [signing]
+      summary: Public quote view for the customer sign page
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: "Quote", content: { application/json: { schema: { $ref: "#/components/schemas/PublicDocument" } } } }
+        "404": { description: "Invalid link" }
+    post:
+      operationId: signPublicQuote
+      tags: [signing]
+      summary: Customer signs the quote (marks it 已接受)
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SignInput" } } } }
+      responses:
+        "200": { description: "Signed", content: { application/json: { schema: { $ref: "#/components/schemas/SignResult" } } } }
+        "409": { description: "Already signed" }
+
+  /contract-sign/{token}:
+    get:
+      operationId: getPublicContract
+      tags: [signing]
+      summary: Public contract view for the customer sign page
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: "Contract", content: { application/json: { schema: { $ref: "#/components/schemas/PublicDocument" } } } }
+        "404": { description: "Invalid link" }
+    post:
+      operationId: signPublicContract
+      tags: [signing]
+      summary: Customer signs the contract
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SignInput" } } } }
+      responses:
+        "200": { description: "Signed", content: { application/json: { schema: { $ref: "#/components/schemas/SignResult" } } } }
+        "409": { description: "Already signed" }
+
+  # ── Projects ────────────────────────────────────────────────
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List projects
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: customer_id, in: query, schema: { type: integer } }
+        - { name: order_id, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: "Project list", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Project" } } } } }
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a project
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ProjectInput" } } } }
+      responses:
+        "201": { description: "Created project", content: { application/json: { schema: { $ref: "#/components/schemas/Project" } } } }
+
+  /projects/{id}:
+    put:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project (including moving it to another status)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ProjectUpdate" } } } }
+      responses:
+        "200": { description: "Updated project", content: { application/json: { schema: { $ref: "#/components/schemas/Project" } } } }
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: "Deleted" }
+
+  # ── Company, invoices, 401 ──────────────────────────────────
+  /company-settings:
+    get:
+      operationId: getCompanySettings
+      tags: [invoicing]
+      summary: Business entity details printed on invoices and the 401 return
+      responses:
+        "200": { description: "Settings", content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettings" } } } }
+    put:
+      operationId: updateCompanySettings
+      tags: [invoicing]
+      summary: Save business entity details
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettingsInput" } } } }
+      responses:
+        "200": { description: "Settings", content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettings" } } } }
+
+  /invoice-tracks:
+    get:
+      operationId: listInvoiceTracks
+      tags: [invoicing]
+      summary: List invoice number blocks (字軌)
+      parameters: [{ name: period, in: query, schema: { type: string }, description: "YYYY-MM of the first month" }]
+      responses:
+        "200": { description: "Tracks", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/InvoiceTrack" } } } } }
+    post:
+      operationId: createInvoiceTrack
+      tags: [invoicing]
+      summary: Register a block of invoice numbers
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceTrackInput" } } } }
+      responses:
+        "201": { description: "Created", content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceTrack" } } } }
+        "409": { description: "Overlaps an existing block" }
+
+  /invoice-tracks/{id}:
+    delete:
+      operationId: deleteInvoiceTrack
+      tags: [invoicing]
+      summary: Remove a number block that has not been used
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "204": { description: "Deleted" }
+        "409": { description: "Numbers already issued" }
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoicing]
+      summary: List output invoices
+      parameters:
+        - { name: period, in: query, schema: { type: string }, description: "YYYY-MM of the first month" }
+        - { name: status, in: query, schema: { type: string, enum: [已開立, 已作廢] } }
+        - { name: kind, in: query, schema: { type: string } }
+        - { name: order_id, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        "200": { description: "Invoices", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Invoice" } } } } }
+    post:
+      operationId: createInvoice
+      tags: [invoicing]
+      summary: Issue an invoice (auto-numbered from a block unless invoice_number is given)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceInput" } } } }
+      responses:
+        "201": { description: "Issued", content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "409": { description: "No number available, duplicate number, or period already filed" }
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoicing]
+      summary: Get an invoice
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Invoice", content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "404": { description: "Not found" }
+
+  /invoices/{id}/void:
+    post:
+      operationId: voidInvoice
+      tags: [invoicing]
+      summary: Void an invoice (number stays on file)
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceVoidInput" } } } }
+      responses:
+        "200": { description: "Voided", content: { application/json: { schema: { $ref: "#/components/schemas/Invoice" } } } }
+        "409": { description: "Already voided or period filed" }
+
+  /invoice-allowances:
+    get:
+      operationId: listInvoiceAllowances
+      tags: [invoicing]
+      summary: List sales allowances (折讓單)
+      parameters:
+        - { name: period, in: query, schema: { type: string } }
+        - { name: invoice_id, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: "Allowances", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/InvoiceAllowance" } } } } }
+    post:
+      operationId: createInvoiceAllowance
+      tags: [invoicing]
+      summary: Issue an allowance against an invoice
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceAllowanceInput" } } } }
+      responses:
+        "201": { description: "Created", content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceAllowance" } } } }
+        "409": { description: "Exceeds the invoice or period filed" }
+
+  /invoice-allowances/{id}/void:
+    post:
+      operationId: voidInvoiceAllowance
+      tags: [invoicing]
+      summary: Void an allowance
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Voided", content: { application/json: { schema: { $ref: "#/components/schemas/InvoiceAllowance" } } } }
+        "409": { description: "Period filed" }
+
+  /tax/report:
+    get:
+      operationId: getTaxReport
+      tags: [tax]
+      summary: Business tax (401) figures for one two-month period
+      parameters: [{ name: period, in: query, required: true, schema: { type: string }, description: "YYYY-MM of the first month" }]
+      responses:
+        "200": { description: "Report", content: { application/json: { schema: { $ref: "#/components/schemas/TaxReport" } } } }
+
+  /tax/filings:
+    get:
+      operationId: listTaxFilings
+      tags: [tax]
+      summary: Filing status and key totals for the six periods of a year
+      parameters: [{ name: year, in: query, required: true, schema: { type: integer } }]
+      responses:
+        "200": { description: "Periods", content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/TaxPeriodSummary" } } } } }
+
+  /tax/filings/{period}:
+    put:
+      operationId: updateTaxFiling
+      tags: [tax]
+      summary: Mark a period filed / reopen it, or set the carried-in credit
+      parameters: [{ name: period, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TaxFilingInput" } } } }
+      responses:
+        "200": { description: "Filing", content: { application/json: { schema: { $ref: "#/components/schemas/TaxFiling" } } } }
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    # ── Dashboard ─────────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required: [todayBookings, monthNewCustomers, totalCustomers, totalBookings, bookingsByStatus]
+      properties:
+        todayBookings:
+          type: integer
+        monthNewCustomers:
+          type: integer
+        totalCustomers:
+          type: integer
+        totalBookings:
+          type: integer
+        bookingsByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+
+    StatusCount:
+      type: object
+      required: [status, count]
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+
+    # ── Customer ─────────────────────────────────────────────
+    Customer:
+      type: object
+      required: [id, customer_number, name, phone, source, category, member_tier, tags, created_at, customer_type]
+      properties:
+        customer_type: { type: string, enum: [個人, 公司] }
+        company_name: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"], description: "統一編號 (8 digits)" }
+        address: { type: ["string", "null"] }
+        payment_terms: { type: ["string", "null"] }
+        id:
+          type: integer
+        customer_number:
+          type: string
+          description: "Immutable, auto-generated once at creation. Format: C + YYYYMMDD + 3-digit daily sequence."
+          readOnly: true
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        source:
+          type: string
+          enum: [社群, 介紹, 官網, 廣告]
+        category:
+          type: string
+          enum: [新人婚紗, 親子寫真, 個人寫真, 企業商業客戶]
+        tags:
+          type: array
+          items:
+            type: string
+        member_tier:
+          type: string
+          enum: [一般, VIP, VVIP]
+        notes:
+          type: ["string", "null"]
+        line_bound:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    CustomerInput:
+      type: object
+      required: [name, phone, source, category, member_tier]
+      properties:
+        customer_type: { type: string, enum: [個人, 公司] }
+        company_name: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"], description: "統一編號 (8 digits)" }
+        address: { type: ["string", "null"] }
+        payment_terms: { type: ["string", "null"] }
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        source:
+          type: string
+          enum: [社群, 介紹, 官網, 廣告]
+        category:
+          type: string
+          enum: [新人婚紗, 親子寫真, 個人寫真, 企業商業客戶]
+        tags:
+          type: array
+          items:
+            type: string
+        member_tier:
+          type: string
+          enum: [一般, VIP, VVIP]
+        notes:
+          type: string
+
+    CustomerUpdate:
+      type: object
+      properties:
+        customer_type: { type: string, enum: [個人, 公司] }
+        company_name: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"], description: "統一編號 (8 digits)" }
+        address: { type: ["string", "null"] }
+        payment_terms: { type: ["string", "null"] }
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        source:
+          type: string
+          enum: [社群, 介紹, 官網, 廣告]
+        category:
+          type: string
+          enum: [新人婚紗, 親子寫真, 個人寫真, 企業商業客戶]
+        tags:
+          type: array
+          items:
+            type: string
+        member_tier:
+          type: string
+          enum: [一般, VIP, VVIP]
+        notes:
+          type: string
+
+    # ── Interaction ───────────────────────────────────────────
+    Interaction:
+      type: object
+      required: [id, customer_id, type, content, created_at]
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        type:
+          type: string
+          enum: [諮詢紀錄, 拍攝紀錄, 備註, 電話, Line訊息]
+        content:
+          type: string
+        staff:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+
+    InteractionInput:
+      type: object
+      required: [type, content]
+      properties:
+        type:
+          type: string
+          enum: [諮詢紀錄, 拍攝紀錄, 備註, 電話, Line訊息]
+        content:
+          type: string
+          minLength: 1
+        staff:
+          type: string
+
+    # ── Booking ───────────────────────────────────────────────
+    Booking:
+      type: object
+      required: [id, booking_number, service_type, date, time_slot, status, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+        booking_number:
+          type: string
+          description: "Immutable, auto-generated once at creation. Format: B + YYYYMMDD + 3-digit daily sequence."
+          readOnly: true
+        customer_id:
+          type: ["integer", "null"]
+        customer_name:
+          type: ["string", "null"]
+        customer_phone:
+          type: ["string", "null"]
+        service_type:
+          type: string
+        date:
+          type: string
+          format: date
+        time_slot:
+          type: string
+        status:
+          type: string
+          enum: [諮詢, 已預約, 已拍攝, 修圖中, 交件, 結案]
+        assigned_staff:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        order_id:
+          type: ["integer", "null"]
+          description: Order created from this booking, if any
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    BookingInput:
+      type: object
+      required: [service_type, date, time_slot, contact_name, contact_phone]
+      properties:
+        customer_id:
+          type: integer
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 1
+        contact_email:
+          type: string
+        service_type:
+          type: string
+          minLength: 1
+        date:
+          type: string
+          format: date
+        time_slot:
+          type: string
+          minLength: 1
+        notes:
+          type: string
+        assigned_staff:
+          type: string
+
+    BookingUpdate:
+      type: object
+      properties:
+        service_type:
+          type: string
+        date:
+          type: string
+          format: date
+        time_slot:
+          type: string
+        status:
+          type: string
+          enum: [諮詢, 已預約, 已拍攝, 修圖中, 交件, 結案]
+        assigned_staff:
+          type: string
+        notes:
+          type: string
+
+    BookingStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [諮詢, 已預約, 已拍攝, 修圖中, 交件, 結案]
+
+    # ── Auth / Change Requests ────────────────────────────────
+    RegisterInput:
+      type: object
+      required: [phone, password, name]
+      properties:
+        phone:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [phone, password]
+      properties:
+        phone:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+
+    ChangeRequest:
+      type: object
+      required: [id, customer_id, status, created_at]
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        requested_name:
+          type: ["string", "null"]
+        requested_phone:
+          type: ["string", "null"]
+        requested_email:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [待審核, 已核准, 已拒絕]
+        admin_note:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+        reviewed_at:
+          type: ["string", "null"]
+          format: date-time
+
+    ChangeRequestInput:
+      type: object
+      properties:
+        requested_name:
+          type: string
+        requested_phone:
+          type: string
+        requested_email:
+          type: string
+
+    ChangeRequestReviewInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+        admin_note:
+          type: string
+
+    # ── Availability ──────────────────────────────────────────
+    DayAvailability:
+      type: object
+      required: [date, available_slots, booked_count]
+      properties:
+        date:
+          type: string
+          format: date
+        available_slots:
+          type: integer
+        booked_count:
+          type: integer
+
+    TimeSlot:
+      type: object
+      required: [time, available]
+      properties:
+        time:
+          type: string
+        available:
+          type: boolean
+
+    # ── Package ───────────────────────────────────────────────
+    Package:
+      type: object
+      required: [id, name, description, duration, price]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        duration:
+          type: string
+        price:
+          type: integer
+        category:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+
+    # ── Quotes / Orders ───────────────────────────────────────
+    LineItem:
+      type: object
+      required: [name, quantity, unit_price]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        quantity:
+          type: integer
+          minimum: 1
+        unit_price:
+          type: integer
+          minimum: 0
+
+    Quote:
+      type: object
+      required: [id, quote_number, contact_name, contact_phone, title, items, discount, total, status, created_at, updated_at, tax_mode, tax_rate, tax_amount]
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        tax_amount: { type: integer }
+        terms: { type: ["string", "null"] }
+        read_at: { type: ["string", "null"], format: date-time }
+        signer_name: { type: ["string", "null"] }
+        signed_at: { type: ["string", "null"], format: date-time }
+        signature_image: { type: ["string", "null"], description: "PNG data URL; only returned by getQuote" }
+        id:
+          type: integer
+        quote_number:
+          type: string
+          description: "Immutable. Format: Q + YYYYMMDD + 3-digit daily sequence."
+          readOnly: true
+        customer_id:
+          type: ["integer", "null"]
+        contact_name:
+          type: string
+        contact_phone:
+          type: string
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+        total:
+          type: integer
+        valid_until:
+          type: ["string", "null"]
+          description: YYYY-MM-DD
+        status:
+          type: string
+          enum: [草稿, 已送出, 已接受, 已拒絕]
+        order_id:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    QuoteInput:
+      type: object
+      required: [contact_name, contact_phone, title, items]
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        terms: { type: ["string", "null"] }
+        customer_id:
+          type: ["integer", "null"]
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 1
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+          minimum: 0
+        valid_until:
+          type: ["string", "null"]
+          description: YYYY-MM-DD
+        status:
+          type: string
+          enum: [草稿, 已送出, 已接受, 已拒絕]
+        notes:
+          type: ["string", "null"]
+
+    QuoteUpdate:
+      type: object
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        terms: { type: ["string", "null"] }
+        customer_id:
+          type: ["integer", "null"]
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 1
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+          minimum: 0
+        valid_until:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [草稿, 已送出, 已接受, 已拒絕]
+        notes:
+          type: ["string", "null"]
+
+    Order:
+      type: object
+      required: [id, order_number, contact_name, contact_phone, title, items, discount, total, status, paid_amount, balance, created_at, updated_at, tax_mode, tax_rate, tax_amount]
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        tax_amount: { type: integer }
+        id:
+          type: integer
+        order_number:
+          type: string
+          description: "Immutable. Format: O + YYYYMMDD + 3-digit daily sequence."
+          readOnly: true
+        customer_id:
+          type: ["integer", "null"]
+        quote_id:
+          type: ["integer", "null"]
+        quote_number:
+          type: ["string", "null"]
+        booking_id:
+          type: ["integer", "null"]
+        booking_number:
+          type: ["string", "null"]
+        contact_name:
+          type: string
+        contact_phone:
+          type: string
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+        total:
+          type: integer
+        paid_amount:
+          type: integer
+          description: Sum of income ledger entries linked to this order
+        balance:
+          type: integer
+        status:
+          type: string
+          enum: [已成立, 製作中, 已交付, 已結案, 已取消]
+        delivery_date:
+          type: ["string", "null"]
+          description: YYYY-MM-DD
+        notes:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderInput:
+      type: object
+      required: [contact_name, contact_phone, title, items]
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        customer_id:
+          type: ["integer", "null"]
+        booking_id:
+          type: ["integer", "null"]
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 1
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: [已成立, 製作中, 已交付, 已結案, 已取消]
+        delivery_date:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    OrderUpdate:
+      type: object
+      properties:
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        customer_id:
+          type: ["integer", "null"]
+        booking_id:
+          type: ["integer", "null"]
+        contact_name:
+          type: string
+          minLength: 1
+        contact_phone:
+          type: string
+          minLength: 1
+        contact_email:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/LineItem"
+        discount:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: [已成立, 製作中, 已交付, 已結案, 已取消]
+        delivery_date:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    # ── Accounting ────────────────────────────────────────────
+    Transaction:
+      type: object
+      required: [id, type, category, amount, date, created_at, updated_at, tax_amount]
+      properties:
+        voucher_type: { type: ["string", "null"], enum: [三聯式進項發票, 二聯式進項發票, 電子發票, 海關代徵, 收據/無憑證, null] }
+        voucher_number: { type: ["string", "null"] }
+        voucher_date: { type: ["string", "null"] }
+        counterparty_name: { type: ["string", "null"] }
+        counterparty_tax_id: { type: ["string", "null"] }
+        deduct_code: { type: ["integer", "null"], enum: [1, 2, 3, 4, null], description: "1 可扣抵進貨及費用, 2 可扣抵固定資產, 3 不得扣抵進貨及費用, 4 不得扣抵固定資產" }
+        tax_amount: { type: integer }
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [收入, 支出]
+        category:
+          type: string
+        amount:
+          type: integer
+        date:
+          type: string
+          description: YYYY-MM-DD
+        method:
+          type: ["string", "null"]
+        order_id:
+          type: ["integer", "null"]
+        order_number:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TransactionInput:
+      type: object
+      required: [type, category, amount, date]
+      properties:
+        voucher_type: { type: ["string", "null"], enum: [三聯式進項發票, 二聯式進項發票, 電子發票, 海關代徵, 收據/無憑證, null] }
+        voucher_number: { type: ["string", "null"] }
+        voucher_date: { type: ["string", "null"] }
+        counterparty_name: { type: ["string", "null"] }
+        counterparty_tax_id: { type: ["string", "null"] }
+        deduct_code: { type: ["integer", "null"], enum: [1, 2, 3, 4, null], description: "1 可扣抵進貨及費用, 2 可扣抵固定資產, 3 不得扣抵進貨及費用, 4 不得扣抵固定資產" }
+        tax_amount: { type: integer, minimum: 0 }
+        type:
+          type: string
+          enum: [收入, 支出]
+        category:
+          type: string
+          minLength: 1
+        amount:
+          type: integer
+          minimum: 1
+        date:
+          type: string
+          description: YYYY-MM-DD
+        method:
+          type: ["string", "null"]
+        order_id:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+
+    MonthTotal:
+      type: object
+      required: [month, income, expense]
+      properties:
+        month:
+          type: string
+          description: YYYY-MM
+        income:
+          type: integer
+        expense:
+          type: integer
+
+    AccountingSummary:
+      type: object
+      required: [year, months, receivables, receivable_orders]
+      properties:
+        year:
+          type: integer
+        months:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthTotal"
+        receivables:
+          type: integer
+          description: Outstanding balance across non-cancelled orders
+        receivable_orders:
+          type: integer
+
+    # ── Availability schedule ─────────────────────────────────
+    WeekdaySlots:
+      type: object
+      required: [weekday, slots]
+      properties:
+        weekday:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: 0 = Sunday … 6 = Saturday
+        slots:
+          type: array
+          items:
+            type: string
+
+    MonthDay:
+      type: object
+      required: [date, slots, is_custom, booked, bookable]
+      properties:
+        date:
+          type: string
+          description: YYYY-MM-DD
+        slots:
+          type: array
+          items:
+            type: string
+          description: Open periods (empty = closed)
+        is_custom:
+          type: boolean
+          description: True when set for this date rather than from the weekly default
+        note:
+          type: ["string", "null"]
+        booked:
+          type: array
+          items:
+            type: string
+          description: Periods with an active booking
+        bookable:
+          type: array
+          items:
+            type: string
+          description: Periods a customer can still pick
+
+    BulkOverrideInput:
+      type: object
+      required: [staff_id, dates]
+      properties:
+        staff_id:
+          type: integer
+        dates:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        slots:
+          type: ["array", "null"]
+          items:
+            type: string
+        note:
+          type: ["string", "null"]
+
+    AvailabilitySchedule:
+      type: object
+      required: [weekly, slot_choices]
+      properties:
+        weekly:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeekdaySlots"
+        slot_choices:
+          type: array
+          items:
+            type: string
+
+    WeeklyScheduleInput:
+      type: object
+      required: [staff_id, days]
+      properties:
+        staff_id:
+          type: integer
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeekdaySlots"
+
+    # ── Staff ─────────────────────────────────────────────────
+    StaffMember:
+      type: object
+      required: [id, name, role, active, booking_count, upcoming_count]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        phone:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        booking_count:
+          type: integer
+          description: All bookings ever assigned
+        upcoming_count:
+          type: integer
+          description: Assigned bookings from today on that aren't 結案
+
+    StaffInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        role:
+          type: string
+        phone:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    StaffUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        role:
+          type: string
+        phone:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        active:
+          type: boolean
+
+    Photographer:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    # ── Signing ───────────────────────────────────────────────
+    SignLink:
+      type: object
+      required: [path, token]
+      properties:
+        path: { type: string, description: "Relative page URL, e.g. /quote-sign?token=…" }
+        token: { type: string }
+
+    SignInput:
+      type: object
+      required: [signer_name, signature_image]
+      properties:
+        signer_name: { type: string, minLength: 1 }
+        signature_image: { type: string, description: "PNG data URL" }
+
+    SignResult:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+
+    PublicDocument:
+      type: object
+      required: [kind, number, title, client_name, items, discount, tax_mode, tax_rate, tax_amount, total, signed]
+      properties:
+        kind: { type: string, enum: [quote, contract] }
+        number: { type: string }
+        title: { type: string }
+        client_name: { type: string }
+        tax_id: { type: ["string", "null"] }
+        date: { type: ["string", "null"] }
+        valid_until: { type: ["string", "null"] }
+        items: { type: array, items: { $ref: "#/components/schemas/LineItem" } }
+        discount: { type: integer }
+        tax_mode: { type: string }
+        tax_rate: { type: integer }
+        tax_amount: { type: integer }
+        total: { type: integer }
+        terms: { type: ["string", "null"], description: "HTML (contracts) or plain text (quotes)" }
+        nda: { type: ["string", "null"], description: HTML }
+        notes: { type: ["string", "null"] }
+        signed: { type: boolean }
+        signer_name: { type: ["string", "null"] }
+        signed_at: { type: ["string", "null"], format: date-time }
+        studio_name: { type: string }
+
+    # ── Contracts ─────────────────────────────────────────────
+    Contract:
+      type: object
+      required: [id, contract_number, contact_name, contact_phone, title, items, discount, tax_mode, tax_rate, tax_amount, total, status, created_at, updated_at]
+      properties:
+        id: { type: integer }
+        contract_number: { type: string, readOnly: true, description: "Immutable. Format: K + YYYYMMDD + 3-digit daily sequence." }
+        customer_id: { type: ["integer", "null"] }
+        quote_id: { type: ["integer", "null"] }
+        quote_number: { type: ["string", "null"] }
+        order_id: { type: ["integer", "null"] }
+        order_number: { type: ["string", "null"] }
+        previous_contract_id: { type: ["integer", "null"] }
+        contact_name: { type: string }
+        contact_phone: { type: string }
+        contact_email: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        title: { type: string }
+        items: { type: array, items: { $ref: "#/components/schemas/LineItem" } }
+        discount: { type: integer }
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer }
+        tax_amount: { type: integer }
+        total: { type: integer }
+        start_date: { type: ["string", "null"] }
+        end_date: { type: ["string", "null"] }
+        terms: { type: ["string", "null"] }
+        nda: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string, enum: [草稿, 已發送, 已簽約, 已結案, 作廢] }
+        customer_signer_name: { type: ["string", "null"] }
+        customer_signed_at: { type: ["string", "null"], format: date-time }
+        customer_signature: { type: ["string", "null"], description: "PNG data URL; only returned by getContract" }
+        customer_read_at: { type: ["string", "null"], format: date-time }
+        staff_signer_name: { type: ["string", "null"] }
+        staff_signed_at: { type: ["string", "null"], format: date-time }
+        staff_signature: { type: ["string", "null"], description: "PNG data URL; only returned by getContract" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ContractInput:
+      type: object
+      required: [contact_name, contact_phone, title, items]
+      properties:
+        customer_id: { type: ["integer", "null"] }
+        quote_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        contact_name: { type: string, minLength: 1 }
+        contact_phone: { type: string, minLength: 1 }
+        contact_email: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        title: { type: string, minLength: 1 }
+        items: { type: array, minItems: 1, items: { $ref: "#/components/schemas/LineItem" } }
+        discount: { type: integer, minimum: 0 }
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        start_date: { type: ["string", "null"] }
+        end_date: { type: ["string", "null"] }
+        terms: { type: ["string", "null"] }
+        nda: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    ContractUpdate:
+      type: object
+      properties:
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        contact_name: { type: string, minLength: 1 }
+        contact_phone: { type: string, minLength: 1 }
+        contact_email: { type: ["string", "null"] }
+        tax_id: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        title: { type: string, minLength: 1 }
+        items: { type: array, minItems: 1, items: { $ref: "#/components/schemas/LineItem" } }
+        discount: { type: integer, minimum: 0 }
+        tax_mode: { type: string, enum: [含稅, 未稅, 免稅] }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+        start_date: { type: ["string", "null"] }
+        end_date: { type: ["string", "null"] }
+        terms: { type: ["string", "null"] }
+        nda: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string, enum: [已結案, 作廢, 草稿], description: "Only the hand-set statuses; 草稿 restores a closed/void contract to its derived status" }
+
+    # ── Projects ──────────────────────────────────────────────
+    Project:
+      type: object
+      required: [id, project_number, name, contact_name, project_type, status, created_at, updated_at]
+      properties:
+        id: { type: integer }
+        project_number: { type: string, readOnly: true, description: "Immutable. Format: J + YYYYMMDD + 3-digit daily sequence." }
+        name: { type: string }
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        order_number: { type: ["string", "null"] }
+        contract_id: { type: ["integer", "null"] }
+        booking_id: { type: ["integer", "null"] }
+        contact_name: { type: string }
+        contact_phone: { type: ["string", "null"] }
+        project_type: { type: string }
+        status: { type: string, enum: [洽談中, 籌備中, 拍攝中, 後製修圖, 客戶校稿, 已交付, 已結案, 取消] }
+        shoot_date: { type: ["string", "null"] }
+        due_date: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        assigned_staff: { type: ["string", "null"] }
+        delivery_link: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ProjectInput:
+      type: object
+      required: [name, contact_name]
+      properties:
+        name: { type: string, minLength: 1 }
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        contract_id: { type: ["integer", "null"] }
+        booking_id: { type: ["integer", "null"] }
+        contact_name: { type: string, minLength: 1 }
+        contact_phone: { type: ["string", "null"] }
+        project_type: { type: string }
+        status: { type: string, enum: [洽談中, 籌備中, 拍攝中, 後製修圖, 客戶校稿, 已交付, 已結案, 取消] }
+        shoot_date: { type: ["string", "null"] }
+        due_date: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        assigned_staff: { type: ["string", "null"] }
+        delivery_link: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        contract_id: { type: ["integer", "null"] }
+        booking_id: { type: ["integer", "null"] }
+        contact_name: { type: string, minLength: 1 }
+        contact_phone: { type: ["string", "null"] }
+        project_type: { type: string }
+        status: { type: string, enum: [洽談中, 籌備中, 拍攝中, 後製修圖, 客戶校稿, 已交付, 已結案, 取消] }
+        shoot_date: { type: ["string", "null"] }
+        due_date: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        assigned_staff: { type: ["string", "null"] }
+        delivery_link: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+
+    # ── Invoicing & tax ───────────────────────────────────────
+    CompanySettings:
+      type: object
+      required: [name, tax_id, tax_reg_number, owner, address, phone, email, bank_account, tax_rate]
+      properties:
+        name: { type: string }
+        tax_id: { type: string }
+        tax_reg_number: { type: string }
+        owner: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        bank_account: { type: string }
+        tax_rate: { type: integer }
+
+    CompanySettingsInput:
+      type: object
+      required: [name, tax_id, tax_reg_number, owner, address, phone, email, bank_account, tax_rate]
+      properties:
+        name: { type: string }
+        tax_id: { type: string }
+        tax_reg_number: { type: string }
+        owner: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        bank_account: { type: string }
+        tax_rate: { type: integer, minimum: 0, maximum: 100 }
+
+    InvoiceTrack:
+      type: object
+      required: [id, period, kind, prefix, range_start, range_end, next_number, used, remaining, created_at]
+      properties:
+        id: { type: integer }
+        period: { type: string, description: "YYYY-MM of the first month" }
+        kind: { type: string, enum: [三聯式, 二聯式, 電子發票] }
+        prefix: { type: string }
+        range_start: { type: integer }
+        range_end: { type: integer }
+        next_number: { type: integer }
+        used: { type: integer }
+        remaining: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    InvoiceTrackInput:
+      type: object
+      required: [period, kind, prefix, range_start, range_end]
+      properties:
+        period: { type: string }
+        kind: { type: string, enum: [三聯式, 二聯式, 電子發票] }
+        prefix: { type: string, pattern: "^[A-Za-z]{2}$" }
+        range_start: { type: integer, minimum: 0, maximum: 99999999 }
+        range_end: { type: integer, minimum: 0, maximum: 99999999 }
+
+    Invoice:
+      type: object
+      required: [id, invoice_number, kind, invoice_date, period, buyer_name, tax_type, sales_amount, tax_amount, total, allowance_total, items, status, created_at]
+      properties:
+        id: { type: integer }
+        invoice_number: { type: string }
+        track_id: { type: ["integer", "null"] }
+        kind: { type: string, enum: [三聯式, 二聯式, 電子發票, 免用發票] }
+        invoice_date: { type: string }
+        period: { type: string }
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        order_number: { type: ["string", "null"] }
+        buyer_name: { type: string }
+        buyer_tax_id: { type: ["string", "null"] }
+        tax_type: { type: string, enum: [應稅, 零稅率, 免稅] }
+        sales_amount: { type: integer }
+        tax_amount: { type: integer }
+        total: { type: integer }
+        allowance_total: { type: integer, description: "Sum of active allowances issued against this invoice" }
+        items: { type: array, items: { $ref: "#/components/schemas/LineItem" } }
+        carrier: { type: ["string", "null"] }
+        donate_code: { type: ["string", "null"] }
+        note: { type: ["string", "null"] }
+        status: { type: string, enum: [已開立, 已作廢] }
+        void_reason: { type: ["string", "null"] }
+        voided_at: { type: ["string", "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+
+    InvoiceInput:
+      type: object
+      required: [kind, invoice_date, buyer_name, total]
+      properties:
+        kind: { type: string, enum: [三聯式, 二聯式, 電子發票, 免用發票] }
+        invoice_date: { type: string, description: YYYY-MM-DD }
+        invoice_number: { type: ["string", "null"], description: "Leave empty to take the next number from the matching block" }
+        customer_id: { type: ["integer", "null"] }
+        order_id: { type: ["integer", "null"] }
+        buyer_name: { type: string, minLength: 1 }
+        buyer_tax_id: { type: ["string", "null"] }
+        tax_type: { type: string, enum: [應稅, 零稅率, 免稅] }
+        total: { type: integer, minimum: 1, description: "Tax-inclusive total; sales and tax are derived from it" }
+        items: { type: array, items: { $ref: "#/components/schemas/LineItem" } }
+        carrier: { type: ["string", "null"] }
+        donate_code: { type: ["string", "null"] }
+        note: { type: ["string", "null"] }
+
+    InvoiceVoidInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
+
+    InvoiceAllowance:
+      type: object
+      required: [id, allowance_number, invoice_id, invoice_number, allowance_date, period, sales_amount, tax_amount, total, status, created_at]
+      properties:
+        id: { type: integer }
+        allowance_number: { type: string }
+        invoice_id: { type: integer }
+        invoice_number: { type: string }
+        allowance_date: { type: string }
+        period: { type: string }
+        sales_amount: { type: integer }
+        tax_amount: { type: integer }
+        total: { type: integer }
+        reason: { type: ["string", "null"] }
+        status: { type: string, enum: [有效, 作廢] }
+        created_at: { type: string, format: date-time }
+
+    InvoiceAllowanceInput:
+      type: object
+      required: [invoice_id, allowance_date, total]
+      properties:
+        invoice_id: { type: integer }
+        allowance_date: { type: string }
+        total: { type: integer, minimum: 1, description: "Tax-inclusive amount being allowed" }
+        reason: { type: ["string", "null"] }
+
+    TaxFiling:
+      type: object
+      required: [period, status]
+      properties:
+        period: { type: string }
+        status: { type: string, enum: [未申報, 已申報] }
+        filed_at: { type: ["string", "null"], format: date-time }
+        carry_in_override: { type: ["integer", "null"] }
+        note: { type: ["string", "null"] }
+
+    TaxFilingInput:
+      type: object
+      properties:
+        status: { type: string, enum: [未申報, 已申報] }
+        carry_in_override: { type: ["integer", "null"] }
+        note: { type: ["string", "null"] }
+
+    TaxPeriodSummary:
+      type: object
+      required: [period, status, sales_total, output_tax, input_tax, payable, carry_out, invoice_count, deadline]
+      properties:
+        period: { type: string }
+        status: { type: string, enum: [未申報, 已申報] }
+        sales_total: { type: integer }
+        output_tax: { type: integer }
+        input_tax: { type: integer }
+        payable: { type: integer }
+        carry_out: { type: integer }
+        invoice_count: { type: integer }
+        deadline: { type: string }
+
+    TaxAmountRow:
+      type: object
+      required: [key, label, count, amount, tax]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        count: { type: integer }
+        amount: { type: integer, description: "Sales amount (output) or purchase amount (input), before tax" }
+        tax: { type: integer }
+
+    TaxReport:
+      type: object
+      required: [period, start, end, deadline, filing, company, voided_count, output_rows, allowances, taxable_sales, taxable_tax, zero_rate, exempt, sales_total, input_rows, input_deductible_amount, input_deductible_tax, non_deductible, output_tax, input_tax, carry_in, net_tax, payable, carry_out, invoices, allowance_list, purchases, missing_vouchers, warnings]
+      properties:
+        period: { type: string }
+        start: { type: string }
+        end: { type: string }
+        deadline: { type: string }
+        filing: { $ref: "#/components/schemas/TaxFiling" }
+        company: { $ref: "#/components/schemas/CompanySettings" }
+        output_rows: { type: array, items: { $ref: "#/components/schemas/TaxAmountRow" }, description: "應稅銷售額 by invoice kind (before allowances)" }
+        allowances: { $ref: "#/components/schemas/TaxAmountRow" }
+        taxable_sales: { type: integer, description: "應稅銷售額合計, net of allowances" }
+        taxable_tax: { type: integer }
+        zero_rate: { $ref: "#/components/schemas/TaxAmountRow" }
+        exempt: { $ref: "#/components/schemas/TaxAmountRow" }
+        sales_total: { type: integer, description: 銷售額總計 }
+        input_rows: { type: array, items: { $ref: "#/components/schemas/TaxAmountRow" }, description: "Deductible purchases by voucher family and 進貨及費用/固定資產" }
+        input_deductible_amount: { type: integer }
+        input_deductible_tax: { type: integer }
+        non_deductible: { $ref: "#/components/schemas/TaxAmountRow" }
+        output_tax: { type: integer, description: 本期銷項稅額合計 }
+        input_tax: { type: integer, description: 得扣抵進項稅額合計 }
+        carry_in: { type: integer, description: 上期累積留抵稅額 }
+        net_tax: { type: integer, description: "output_tax − input_tax − carry_in (negative = credit)" }
+        payable: { type: integer, description: 本期應實繳稅額 }
+        carry_out: { type: integer, description: 本期申報留抵稅額 }
+        invoices: { type: array, items: { $ref: "#/components/schemas/Invoice" } }
+        allowance_list: { type: array, items: { $ref: "#/components/schemas/InvoiceAllowance" } }
+        purchases: { type: array, items: { $ref: "#/components/schemas/Transaction" } }
+        missing_vouchers: { type: array, items: { $ref: "#/components/schemas/Transaction" }, description: "Expenses in the period with no voucher information" }
+        voided_count: { type: integer, description: Voided invoices in the period }
+        warnings: { type: array, items: { type: string } }
