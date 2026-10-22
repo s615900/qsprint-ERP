@@ -25,7 +25,10 @@ function client(): Promise<MongoClient> {
 
 export async function rawCollection<T extends Document = Document>(name: string): Promise<Collection<T>> {
   const c = await client();
-  await (cache.indexes ??= ensureIndexes(c));
+  await (cache.indexes ??= ensureIndexes(c).catch((err) => {
+    cache.indexes = undefined; // retry on the next request instead of failing forever
+    throw err;
+  }));
   return c.db(dbName()).collection<T>(name);
 }
 
@@ -158,6 +161,7 @@ async function ensureIndexes(c: MongoClient): Promise<void> {
 
   // Leftovers from earlier versions of the app (admin invite links, member invite links).
   await d.collection("admin_invites").dropIndex("token_1").catch(() => undefined);
+  await d.collection("admin_invites").deleteMany({ code: { $exists: false } }); // old link-style invites
   await d.collection("member_invites").drop().catch(() => undefined);
 
   await Promise.all([

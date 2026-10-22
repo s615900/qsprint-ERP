@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Camera, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { LineLoginButton } from "../components/LineLoginButton";
+import { DevLoginButton } from "../components/DevLoginButton";
 
 const inputCls =
   "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -108,6 +109,7 @@ export function CustomerRegister() {
               </p>
             </div>
             <LineLoginButton next={next} label="使用 LINE 註冊 / 登入" />
+            <DevLoginButton next={next} />
           </>
         )}
       </div>

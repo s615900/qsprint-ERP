@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Camera } from "lucide-react";
 import { toast } from "sonner";
 import { LineLoginButton } from "../components/LineLoginButton";
+import { DevLoginButton } from "../components/DevLoginButton";
 
 const LINE_ERRORS: Record<string, string> = {
   not_configured: "LINE 登入尚未開通，請聯絡工作室",
@@ -38,6 +39,7 @@ export function CustomerLogin() {
         </div>
 
         <LineLoginButton next={next} label="使用 LINE 登入" />
+        <DevLoginButton next={next} />
 
         <p className="text-center text-sm text-muted-foreground">
           第一次使用？按上面的按鈕，用 LINE 登入後補充姓名與手機即可註冊
