@@ -136,7 +136,7 @@ export function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     key={customer.id} 
-                    className="p-4 sm:p-6 hover:bg-muted/30 transition-colors flex items-center justify-between group cursor-pointer"
+                    className="relative p-4 sm:p-6 hover:bg-muted/30 transition-colors flex items-center justify-between group cursor-pointer"
                     onClick={() => router.push(`/customers/${customer.id}`)}
                   >
                     <Link href={`/customers/${customer.id}`} className="absolute inset-0 z-0" />

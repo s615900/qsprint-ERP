@@ -18,6 +18,7 @@ import { Edit, Phone, Mail, Tag, MessageCircle, Calendar, Plus, MessageSquare, H
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { MemberAccessCard } from "../components/MemberAccessCard";
 
 export function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -172,17 +173,7 @@ export function CustomerDetail() {
               )}
             </div>
 
-            <div className="p-4 bg-amber-50/50 border-t border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/50 flex items-start gap-3">
-              <MessageSquare className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-400">
-                  LINE 尚未串接
-                </span>
-                <p className="text-[11px] text-amber-700/80 dark:text-amber-500/80 mt-1.5 leading-snug">
-                  此功能將於後續版本串接 LINE 官方帳號，啟用後即可在此查看與客戶的對話紀錄。
-                </p>
-              </div>
-            </div>
+            <MemberAccessCard lineBound={!!customer.line_bound} lineName={(customer as { line_display_name?: string | null }).line_display_name} />
           </div>
         </div>
 
