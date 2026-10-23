@@ -1,8 +1,9 @@
 "use client";
 
+import { filterSelectCls } from "@/lib/ui";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Plus, TrendingUp, TrendingDown, Scale, Receipt, Pencil, Trash2, BookOpen, ArrowRight, FileCheck2, ReceiptText, ClipboardList } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Scale, Receipt, Pencil, Trash2, BookOpen, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,6 @@ import {
 import { formatTWD } from "@/lib/money";
 import { invalidateApi } from "@/lib/invalidate";
 import { apiErrorMessage } from "@/lib/errors";
-import { btnOutline } from "@/lib/ui";
 import { MonthlyChart } from "../components/MonthlyChart";
 import { EntryForm } from "../components/EntryForm";
 import { INCOME_COLOR, EXPENSE_COLOR } from "../constants";
@@ -141,12 +141,6 @@ export function Accounting() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Link href="/accounting/invoices" className={btnOutline}><ReceiptText className="w-4 h-4" /> 發票管理</Link>
-        <Link href="/accounting/purchases" className={btnOutline}><ClipboardList className="w-4 h-4" /> 進項憑證</Link>
-        <Link href="/accounting/tax" className={btnOutline}><FileCheck2 className="w-4 h-4" /> 營業稅申報（401）</Link>
-      </div>
-
       {formOpen && (
         <EntryForm
           key={editing?.id ?? "new"}
@@ -209,7 +203,7 @@ export function Accounting() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as TransactionType | "")}
-            className="h-9 px-3 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={filterSelectCls}
           >
             <option value="">收入＋支出</option>
             <option value="收入">只看收入</option>

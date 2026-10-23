@@ -52,7 +52,7 @@ export function InvoiceDetail() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="print:hidden space-y-4">
-        <Link href="/accounting/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/accounting?tab=invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> 返回發票管理
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

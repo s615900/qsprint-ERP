@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Trash2, Plus, ListOrdered } from "lucide-react";
+import { Trash2, Plus, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListInvoiceTracks, useCreateInvoiceTrack, useDeleteInvoiceTrack } from "@/lib/api-client";
@@ -43,9 +42,6 @@ export function InvoiceTracks() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <Link href="/accounting/invoices" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-          <ArrowLeft className="w-4 h-4" /> 返回發票管理
-        </Link>
         <h1 className="text-3xl font-bold text-foreground tracking-tight">字軌配號</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           登錄稅捐機關或電子發票平台配給的發票號碼區間（每兩個月一期），開立發票時系統會依序自動取號。
@@ -54,8 +50,8 @@ export function InvoiceTracks() {
 
       <form onSubmit={submit} className={`${cardCls} p-5 space-y-4`}>
         <h2 className="font-semibold">新增一組字軌</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
-          <div className="space-y-1.5 col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
+          <div className="space-y-1.5 col-span-2">
             <span className="text-sm font-medium">期別</span>
             <PeriodPicker value={period} onChange={setPeriod} />
           </div>

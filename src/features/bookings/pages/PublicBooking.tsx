@@ -14,6 +14,7 @@ import { ApiError } from "@/lib/api-client/custom-fetch";
 import { format, addDays, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
 import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock, ClipboardEdit } from "lucide-react";
 import { toast } from "sonner";
+import { StaffAvatar } from "@/components/StaffAvatar";
 import { useCustomerSession } from "@/features/customer-auth/hooks/useCustomerSession";
 
 export function PublicBooking() {
@@ -274,9 +275,11 @@ export function PublicBooking() {
                         staffId === p.id ? "border-primary ring-2 ring-primary/30" : "border-border"
                       }`}
                     >
-                      <span className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        {p.name.charAt(0)}
-                      </span>
+                      <StaffAvatar
+                        name={p.name}
+                        src={p.avatar}
+                        className="w-14 h-14 bg-primary/10 text-primary text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                      />
                       <span className="flex-1">
                         <span className="block font-bold text-lg text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                         <span className="block text-sm text-muted-foreground mt-0.5">查看可預約時間</span>

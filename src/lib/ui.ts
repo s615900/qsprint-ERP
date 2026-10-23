@@ -3,6 +3,9 @@ export const inputCls =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 export const smInputCls =
   "flex h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+// Toolbar filter dropdowns: one height, width follows the longest option so text is never cut off.
+export const filterSelectCls =
+  "h-10 w-auto min-w-[7.5rem] rounded-md border border-input bg-background pl-3 pr-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 export const textareaCls =
   "flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 

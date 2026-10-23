@@ -15,11 +15,6 @@ import {
   Calculator,
   FileSignature,
   FolderKanban,
-  BookOpen,
-  ReceiptText,
-  ClipboardList as PurchaseIcon,
-  FileCheck2,
-  ListOrdered,
   Settings,
   UserCog,
   Camera,
@@ -61,11 +56,11 @@ const navGroups: { title?: string; items: NavItem[] }[] = [
   {
     title: "接案流程",
     items: [
-      { name: "商品管理", icon: PackageIcon, route: "/products" },
       { name: "報價系統", icon: FileText, route: "/quotes" },
       { name: "合約管理", icon: FileSignature, route: "/contracts" },
       { name: "訂單管理", icon: ShoppingBag, route: "/orders" },
       { name: "專案進度", icon: FolderKanban, route: "/projects" },
+      { name: "商品管理", icon: PackageIcon, route: "/products" },
     ],
   },
   {
@@ -73,13 +68,6 @@ const navGroups: { title?: string; items: NavItem[] }[] = [
     items: [
       {
         name: "會計系統", icon: Calculator, route: "/accounting",
-        subItems: [
-          { name: "收支記帳", icon: BookOpen, route: "/accounting" },
-          { name: "發票管理", icon: ReceiptText, route: "/accounting/invoices" },
-          { name: "進項憑證", icon: PurchaseIcon, route: "/accounting/purchases" },
-          { name: "營業稅申報（401）", icon: FileCheck2, route: "/accounting/tax" },
-          { name: "字軌配號", icon: ListOrdered, route: "/accounting/tracks" },
-        ],
       },
     ],
   },

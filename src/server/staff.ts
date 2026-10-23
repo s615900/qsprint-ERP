@@ -21,6 +21,7 @@ export async function selectStaff(filter: Filter = {}) {
       role: s.role,
       phone: s.phone,
       notes: s.notes,
+      avatar: s.avatar ?? null,
       active: s.active,
       booking_count: counts.get(s.name)?.total ?? 0,
       upcoming_count: counts.get(s.name)?.upcoming ?? 0,

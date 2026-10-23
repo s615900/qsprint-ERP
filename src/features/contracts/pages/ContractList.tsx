@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { useListContracts, type ListContractsParams } from "@/lib/api-client";
 import { formatTWD } from "@/lib/money";
 import { CONTRACT_STATUSES, displayContractStatus } from "@/lib/contractStatus";
-import { btnPrimaryLg, cardCls } from "@/lib/ui";
+import { btnPrimaryLg, cardCls, filterSelectCls } from "@/lib/ui";
 
 export function ContractList() {
   const [search, setSearch] = useState("");
@@ -63,7 +63,7 @@ export function ContractList() {
             />
           </div>
           <select
-            className="h-10 px-3 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={filterSelectCls}
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >

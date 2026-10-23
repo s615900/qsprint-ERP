@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Plus, Receipt, Search, Download, ListOrdered, AlertTriangle } from "lucide-react";
+import { Plus, Receipt, Search, Download, ListOrdered } from "lucide-react";
 import { format } from "date-fns";
 import { useListInvoices, useListInvoiceTracks } from "@/lib/api-client";
 import { PeriodPicker, currentPeriod } from "@/components/PeriodPicker";
 import { formatTWD } from "@/lib/money";
 import { INVOICE_KINDS, periodLabel } from "@/lib/tax";
-import { btnOutline, btnPrimaryLg, cardCls } from "@/lib/ui";
+import { btnOutline, btnPrimaryLg, cardCls, filterSelectCls } from "@/lib/ui";
 import { IssueInvoiceDialog } from "../components/IssueInvoiceDialog";
 import { INVOICE_STATUS_COLOR } from "../constants";
 
@@ -34,21 +34,10 @@ export function InvoiceList() {
           <p className="text-muted-foreground mt-1 text-sm">開立銷項發票、作廢與折讓，資料會自動帶進營業稅 401 申報。</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link href="/accounting/tracks" className={`${btnOutline} h-10 px-3`}><ListOrdered className="w-4 h-4" /> 字軌配號</Link>
+          <Link href="/accounting?tab=tracks" className={`${btnOutline} h-10 px-3`}><ListOrdered className="w-4 h-4" /> 字軌配號</Link>
           <button onClick={() => setOpen(true)} className={btnPrimaryLg}><Plus className="w-4 h-4" /> 開立發票</button>
         </div>
       </div>
-
-      {tracks && tracks.length === 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>
-            還沒有登錄 {periodLabel(period)} 期的發票字軌，無法自動取號。請先到
-            <Link href="/accounting/tracks" className="mx-1 underline font-medium">字軌配號</Link>
-            新增，或開立時手動輸入發票號碼。
-          </span>
-        </div>
-      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <PeriodPicker value={period} onChange={setPeriod} />
@@ -83,7 +72,7 @@ export function InvoiceList() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <select className="h-10 px-3 rounded-md border border-input bg-background text-sm" value={kind} onChange={(e) => setKind(e.target.value)}>
+          <select className={filterSelectCls} value={kind} onChange={(e) => setKind(e.target.value)}>
             <option value="">所有格式</option>
             {INVOICE_KINDS.map((k) => <option key={k}>{k}</option>)}
           </select>

@@ -1,5 +1,6 @@
 "use client";
 
+import { filterSelectCls } from "@/lib/ui";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -225,7 +226,7 @@ export function BookingAdmin() {
             
             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center [&_select]:w-full [&_input]:w-full sm:[&_select]:w-auto sm:[&_input]:w-auto">
               <select 
-                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={filterSelectCls}
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
               >

@@ -202,6 +202,7 @@ export interface Staff extends Ts {
   phone: string | null;
   notes: string | null;
   active: boolean;
+  avatar?: string | null; // small JPEG data URL
 }
 
 export interface Product extends Ts {

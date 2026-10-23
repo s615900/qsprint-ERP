@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Phone, UserCog, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Phone, UserCog, X, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -15,6 +15,7 @@ import {
 import { ApiError } from "@/lib/api-client/custom-fetch";
 import { Switch } from "@/components/ui/switch";
 import { invalidateApi } from "@/lib/invalidate";
+import { StaffAvatar, resizeToAvatar } from "@/components/StaffAvatar";
 import { StaffAdminAccess, type AccessEntry } from "../components/StaffAdminAccess";
 
 type AccessInfo = {
@@ -156,6 +157,27 @@ export function StaffManagement() {
     );
   };
 
+  const saveAvatar = async (member: StaffMember, avatar: string | null) => {
+    const res = await fetch(`/api/staff/${member.id}/avatar`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatar }),
+    });
+    if (res.ok) {
+      toast.success(avatar ? "大頭貼已更新" : "大頭貼已移除");
+      refresh();
+    } else toast.error("大頭貼儲存失敗");
+  };
+
+  const pickAvatar = async (member: StaffMember, file: File | undefined) => {
+    if (!file) return;
+    try {
+      await saveAvatar(member, await resizeToAvatar(file));
+    } catch {
+      toast.error("無法讀取這張圖片，請換一張");
+    }
+  };
+
   const handleDelete = (member: StaffMember) => {
     if (!confirm(`確定要刪除 ${member.name} 嗎？`)) return;
     deleteStaff.mutate(
@@ -212,9 +234,32 @@ export function StaffManagement() {
           <ul className="divide-y divide-border">
             {staff?.map((m) => (
               <li key={m.id} className={`px-4 sm:px-6 py-4 flex items-center gap-4 ${m.active ? "" : "bg-muted/30"}`}>
-                <span className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-medium border ${m.active ? "bg-primary/10 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border"}`}>
-                  {m.name.charAt(0)}
-                </span>
+                <div className="shrink-0 flex flex-col items-center gap-1">
+                  <label className="relative cursor-pointer group" title="點一下上傳大頭貼">
+                    <StaffAvatar
+                      name={m.name}
+                      src={m.avatar}
+                      className={`w-14 h-14 border ${m.active ? "bg-primary/10 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border"}`}
+                    />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow">
+                      <Camera className="w-3 h-3" />
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        pickAvatar(m, e.target.files?.[0]);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {m.avatar && (
+                    <button type="button" onClick={() => saveAvatar(m, null)} className="text-[10px] text-muted-foreground hover:text-destructive underline">
+                      移除
+                    </button>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`font-medium ${m.active ? "" : "text-muted-foreground"}`}>{m.name}</span>

@@ -972,6 +972,8 @@ export interface StaffMember {
   phone?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  avatar?: string | null;
   active: boolean;
   /** All bookings ever assigned */
   booking_count: number;
@@ -1003,6 +1005,8 @@ export interface StaffUpdate {
 export interface Photographer {
   id: number;
   name: string;
+  /** @nullable */
+  avatar?: string | null;
 }
 
 export interface SignLink {

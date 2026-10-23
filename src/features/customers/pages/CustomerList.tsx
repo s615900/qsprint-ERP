@@ -1,5 +1,6 @@
 "use client";
 
+import { filterSelectCls } from "@/lib/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
@@ -95,7 +96,7 @@ export function CustomerList() {
             
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:flex-nowrap [&_select]:w-full sm:[&_select]:w-auto">
               <select 
-                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={filterSelectCls}
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
               >
@@ -104,7 +105,7 @@ export function CustomerList() {
               </select>
 
               <select 
-                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={filterSelectCls}
                 value={memberTier}
                 onChange={(e) => setMemberTier(e.target.value as any)}
               >
@@ -113,7 +114,7 @@ export function CustomerList() {
               </select>
 
               <select
-                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className={filterSelectCls}
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
               >
@@ -124,7 +125,7 @@ export function CustomerList() {
               <div className="relative">
                 <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                 <select
-                  className="h-10 pl-8 pr-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className={`${filterSelectCls} pl-8`}
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value as SortKey)}
                 >

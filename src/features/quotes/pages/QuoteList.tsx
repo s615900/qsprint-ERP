@@ -1,5 +1,6 @@
 "use client";
 
+import { filterSelectCls } from "@/lib/ui";
 import Link from "next/link";
 import { useState } from "react";
 import { Search, Plus, FileText } from "lucide-react";
@@ -99,7 +100,7 @@ export function QuoteList() {
             />
           </div>
           <select
-            className="h-10 px-3 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={filterSelectCls}
             value={status}
             onChange={(e) => setStatus(e.target.value as QuoteStatus | "")}
           >

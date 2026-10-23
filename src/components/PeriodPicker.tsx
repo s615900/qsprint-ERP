@@ -1,7 +1,7 @@
 "use client";
 
 import { periodOf } from "@/lib/tax";
-import { smInputCls } from "@/lib/ui";
+import { filterSelectCls } from "@/lib/ui";
 
 // Picks one of the six two-month business-tax periods. Value is YYYY-MM of the first month.
 export function PeriodPicker({ value, onChange }: { value: string; onChange: (period: string) => void }) {
@@ -13,10 +13,10 @@ export function PeriodPicker({ value, onChange }: { value: string; onChange: (pe
 
   return (
     <div className="flex items-center gap-2">
-      <select aria-label="年度" value={year} onChange={(e) => set(Number(e.target.value), month)} className={`${smInputCls} w-28`}>
+      <select aria-label="年度" value={year} onChange={(e) => set(Number(e.target.value), month)} className={filterSelectCls}>
         {years.sort((a, b) => b - a).map((y) => <option key={y} value={y}>{y - 1911} 年</option>)}
       </select>
-      <select aria-label="期別" value={month} onChange={(e) => set(year, Number(e.target.value))} className={`${smInputCls} w-28`}>
+      <select aria-label="期別" value={month} onChange={(e) => set(year, Number(e.target.value))} className={filterSelectCls}>
         {[1, 3, 5, 7, 9, 11].map((m) => <option key={m} value={m}>{m}-{m + 1} 月</option>)}
       </select>
     </div>

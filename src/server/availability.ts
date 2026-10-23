@@ -5,12 +5,12 @@ import { PERIODS, bookablePeriods, periodOf, toPeriods, type Period } from "@/li
 
 const NO_ID = { projection: { _id: 0 } } as const;
 
-export type Photographer = { id: number; name: string };
+export type Photographer = { id: number; name: string; avatar?: string | null };
 
 // Active staff customers can book: role 攝影師.
 export async function listPhotographers(): Promise<Photographer[]> {
   const rows = await db.staff.find({ active: true, role: "攝影師" }, { sort: { id: 1 } });
-  return rows.map((r) => ({ id: r.id, name: r.name }));
+  return rows.map((r) => ({ id: r.id, name: r.name, avatar: r.avatar ?? null }));
 }
 
 export async function getPhotographer(id: number): Promise<Photographer | undefined> {

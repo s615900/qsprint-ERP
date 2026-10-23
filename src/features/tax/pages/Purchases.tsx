@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Plus, Pencil, Download, AlertTriangle, ClipboardList } from "lucide-react";
+import { Plus, Pencil, Download, AlertTriangle, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -50,9 +49,6 @@ export function Purchases() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div>
-        <Link href="/accounting" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-          <ArrowLeft className="w-4 h-4" /> 返回會計系統
-        </Link>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground tracking-tight">進項憑證</h1>

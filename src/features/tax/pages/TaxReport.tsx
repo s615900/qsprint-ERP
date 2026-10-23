@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Download, Printer, Lock, Unlock, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Download, Printer, Lock, Unlock, CheckCircle2, Info } from "lucide-react";
 import { differenceInCalendarDays, format } from "date-fns";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -82,9 +82,6 @@ export function TaxReport() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="print:hidden">
-        <Link href="/accounting" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-          <ArrowLeft className="w-4 h-4" /> 返回會計系統
-        </Link>
         <h1 className="text-3xl font-bold text-foreground tracking-tight">營業稅申報（401）</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           依本期開立的發票、折讓與進項憑證，自動彙整 401 申報書各欄數字，申報時照著填入即可。
@@ -128,17 +125,6 @@ export function TaxReport() {
           <button onClick={() => window.print()} className={btnOutline}><Printer className="w-4 h-4" /> 列印</button>
         </div>
       </div>
-
-      {r && r.warnings.length > 0 && (
-        <div className="print:hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-1.5">
-          {r.warnings.map((w) => (
-            <div key={w} className="flex items-start gap-2 text-sm text-amber-900"><AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />{w}</div>
-          ))}
-          <div className="text-xs text-amber-800/80 pl-6">
-            <Link href="/accounting/purchases" className="underline">前往進項憑證</Link>・<Link href="/settings" className="underline">營業人資料</Link>
-          </div>
-        </div>
-      )}
 
       {isLoading || !r ? (
         <div className="h-96 rounded-xl bg-muted animate-pulse" />
