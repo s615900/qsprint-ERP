@@ -9,6 +9,15 @@ import { inputCls, btnOutline, btnPrimary, btnPrimaryLg } from "@/lib/ui";
 function SignatureDialog({ onDone, onClose }: { onDone: (dataUrl: string) => void; onClose: () => void }) {
   const pad = useRef<SignaturePadHandle>(null);
   const [empty, setEmpty] = useState(false);
+  const [view, setView] = useState({ w: window.innerWidth, h: window.innerHeight });
+
+  // Held upright, a phone gives a tall narrow box; turn the whole sheet 90° so the pad is wide.
+  useEffect(() => {
+    const read = () => setView({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  }, []);
+  const rotated = view.h > view.w;
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -19,7 +28,16 @@ function SignatureDialog({ onDone, onClose }: { onDone: (dataUrl: string) => voi
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background p-4 gap-3" role="dialog" aria-label="簽名">
+    <div
+      className="fixed z-50 flex flex-col bg-background p-4 gap-3"
+      style={
+        rotated
+          ? { top: 0, left: 0, width: view.h, height: view.w, transformOrigin: "top left", transform: `translateX(${view.w}px) rotate(90deg)` }
+          : { inset: 0 }
+      }
+      role="dialog"
+      aria-label="簽名"
+    >
       <div className="flex items-center justify-between">
         <span className="font-semibold">請在下方簽名</span>
         <button type="button" onClick={onClose} aria-label="關閉" className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted">
@@ -27,10 +45,10 @@ function SignatureDialog({ onDone, onClose }: { onDone: (dataUrl: string) => voi
         </button>
       </div>
       <div className="flex-1 min-h-0">
-        <SignaturePad ref={pad} className="h-full" />
+        <SignaturePad key={`${view.w}x${view.h}`} ref={pad} className="h-full" rotated={rotated} />
       </div>
       {empty && <p className="text-sm text-destructive">還沒有簽名喔</p>}
-      <p className="text-xs text-muted-foreground">手機可以橫放，簽名空間會更大。</p>
+      {rotated && <p className="text-xs text-muted-foreground">畫面已轉橫，請把手機往左轉成橫的再簽名。</p>}
       <div className="flex gap-2">
         <button type="button" className={`${btnOutline} h-11 flex-1`} onClick={() => { pad.current?.clear(); setEmpty(false); }}>
           清除重簽

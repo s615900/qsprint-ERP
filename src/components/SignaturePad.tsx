@@ -9,7 +9,8 @@ export interface SignaturePadHandle {
   toDataUrl: () => string;
 }
 
-export function SignaturePad({ ref, className = "h-[180px]" }: { ref: Ref<SignaturePadHandle>; className?: string }) {
+// `rotated`: the pad sits inside a parent turned 90° clockwise, so pointer coordinates must be mapped back.
+export function SignaturePad({ ref, className = "h-[180px]", rotated = false }: { ref: Ref<SignaturePadHandle>; className?: string; rotated?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const hasDrawn = useRef(false);
@@ -19,9 +20,9 @@ export function SignaturePad({ ref, className = "h-[180px]" }: { ref: Ref<Signat
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const ratio = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+    // Layout size, not getBoundingClientRect: that one is swapped when a parent is rotated.
+    canvas.width = canvas.clientWidth * ratio;
+    canvas.height = canvas.clientHeight * ratio;
     ctx.scale(ratio, ratio);
     ctx.lineWidth = 2.2;
     ctx.lineCap = "round";
@@ -40,6 +41,7 @@ export function SignaturePad({ ref, className = "h-[180px]" }: { ref: Ref<Signat
 
   const pos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
+    if (rotated) return { x: e.clientY - rect.top, y: rect.right - e.clientX };
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
   const stop = () => {
