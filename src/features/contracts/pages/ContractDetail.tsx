@@ -1,10 +1,11 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, Pencil, Printer, Trash2, Camera, Link2, PenLine, FileText, ShoppingBag, FolderKanban,
+  ArrowLeft, Pencil, Printer, Trash2, Link2, PenLine, FileText, ShoppingBag, FolderKanban,
   CheckCircle2, Eye, RefreshCcw, Ban, Archive, Undo2,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -233,7 +234,7 @@ export function ContractDetail() {
         <div className="flex flex-col sm:flex-row justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 text-primary">
-              <Camera className="w-5 h-5" />
+              <Logo className="w-8 h-8" />
               <span className="font-semibold tracking-wide">{company?.name || "青春止秒攝影工作室"}</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight mt-4">{contract.title}</h1>

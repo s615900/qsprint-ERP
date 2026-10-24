@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
-import { Camera, CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 
 export const metadata: Metadata = { title: "青春止秒攝影工作室" };
 
@@ -10,7 +11,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center p-4">
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl border border-border p-8 space-y-6 text-center">
         <div className="flex flex-col items-center gap-2">
-          <Camera className="w-8 h-8 text-primary" />
+          <Logo className="w-14 h-14" />
           <h1 className="text-2xl font-bold tracking-wide text-sidebar">青春止秒攝影工作室</h1>
           <p className="text-muted-foreground text-sm">線上預約拍攝、查看會員資料</p>
         </div>

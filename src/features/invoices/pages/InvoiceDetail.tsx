@@ -1,9 +1,10 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Printer, Ban, ReceiptText, Camera, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Printer, Ban, ReceiptText, ShoppingBag } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -81,7 +82,7 @@ export function InvoiceDetail() {
         <div className="flex flex-col sm:flex-row justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 text-primary">
-              <Camera className="w-5 h-5" />
+              <Logo className="w-8 h-8" />
               <span className="font-semibold tracking-wide">{company?.name || "青春止秒攝影工作室"}</span>
             </div>
             {company?.tax_id && <p className="text-sm text-muted-foreground mt-1">統一編號 {company.tax_id}</p>}

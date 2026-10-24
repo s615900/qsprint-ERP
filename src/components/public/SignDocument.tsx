@@ -2,9 +2,10 @@
 
 // Customer-facing review & sign page, shared by quotes and contracts. No login: the link's
 // signed token is the credential.
+import { Logo } from "@/components/Logo";
 import { useState, type ReactNode } from "react";
 import { format } from "date-fns";
-import { CheckCircle2, Camera } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import {
   useGetPublicQuote,
   useGetPublicContract,
@@ -39,7 +40,7 @@ function Shell({ title, subtitle, children }: { title: string; subtitle?: string
     <div className="min-h-[100dvh] bg-muted/30 p-4 pt-[max(16px,env(safe-area-inset-top))]">
       <div className="mx-auto max-w-[640px] space-y-4">
         <header className="rounded-xl bg-sidebar p-5 text-sidebar-foreground">
-          <div className="flex items-center gap-2 text-sm opacity-80"><Camera className="w-4 h-4" />{subtitle}</div>
+          <div className="flex items-center gap-2 text-sm opacity-80"><Logo className="w-6 h-6" />{subtitle}</div>
           <h1 className="text-xl font-bold mt-1">{title}</h1>
         </header>
         {children}

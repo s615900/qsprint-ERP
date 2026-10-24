@@ -1,9 +1,10 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Camera, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { LineLoginButton } from "../components/LineLoginButton";
 import { DevLoginButton } from "../components/DevLoginButton";
@@ -64,7 +65,7 @@ export function CustomerRegister() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center p-4">
       <div className="flex items-center gap-2 mb-8">
-        <Camera className="w-6 h-6 text-primary" />
+        <Logo className="w-9 h-9" />
         <span className="font-bold text-lg tracking-wide text-sidebar">青春止秒攝影工作室</span>
       </div>
 

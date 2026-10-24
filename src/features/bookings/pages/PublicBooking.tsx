@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,7 +13,7 @@ import {
 } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-client/custom-fetch";
 import { format, addDays, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns";
-import { CheckCircle2, ChevronLeft, ChevronRight, Camera, Clock, ClipboardEdit } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Clock, ClipboardEdit } from "lucide-react";
 import { toast } from "sonner";
 import { StaffAvatar } from "@/components/StaffAvatar";
 import { useCustomerSession } from "@/features/customer-auth/hooks/useCustomerSession";
@@ -176,7 +177,7 @@ export function PublicBooking() {
       <header className="bg-white border-b border-border py-4 px-6 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Camera className="w-6 h-6 text-primary" />
+            <Logo className="w-9 h-9" />
             <span className="font-bold text-lg tracking-wide text-sidebar">青春止秒攝影工作室</span>
           </div>
           <div className="flex items-center gap-4">

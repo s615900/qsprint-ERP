@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Camera } from "lucide-react";
@@ -28,7 +29,7 @@ export function CustomerLogin() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col items-center justify-center p-4">
       <div className="flex items-center gap-2 mb-8">
-        <Camera className="w-6 h-6 text-primary" />
+        <Logo className="w-9 h-9" />
         <span className="font-bold text-lg tracking-wide text-sidebar">青春止秒攝影工作室</span>
       </div>
 

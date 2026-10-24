@@ -1,0 +1,30 @@
+// 青春止秒 app icon: a hand-drawn 「青」 on a sky-to-mint tile, with a spark for the frozen second.
+// Same artwork as src/app/icon.svg. Each copy gets its own gradient id: a gradient defined inside a
+// display:none svg (e.g. a hidden sidebar) does not resolve for the visible copies.
+import { useId } from "react";
+
+export function Logo({ className = "w-8 h-8" }: { className?: string }) {
+  const gid = `qs-logo-${useId().replace(/:/g, "")}`;
+  return (
+    <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} role="img" aria-label="青春止秒攝影工作室">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#2BB8F5" />
+          <stop offset="1" stopColor="#2FE0B0" />
+        </linearGradient>
+      </defs>
+      <rect width="180" height="180" rx="44" fill={`url(#${gid})`} />
+      <g transform="translate(22 24) scale(1.35) rotate(-3 50 50)" stroke="#FFFFFF" strokeWidth="8.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M27 23 Q50 20 74 22" />
+        <path d="M50 10 Q51 28 49 44" />
+        <path d="M33 33 Q50 31 67 33" />
+        <path d="M26 43 Q50 40 76 43" />
+        <path d="M31 53 Q28 70 27 88" />
+        <path d="M31 53 Q52 50 71 53 Q72 72 70 84 Q69 90 62 88" />
+        <path d="M31 64 Q50 62 71 64" />
+        <path d="M30 76 Q50 74 70 76" />
+      </g>
+      <path d="M146 30 l3 9 9 3 -9 3 -3 9 -3 -9 -9 -3 9 -3z" fill="#FFE66B" />
+    </svg>
+  );
+}

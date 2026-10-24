@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/Logo";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,7 +18,6 @@ import {
   FolderKanban,
   Settings,
   UserCog,
-  Camera,
   Menu,
   type LucideIcon,
 } from "lucide-react";
@@ -116,7 +116,7 @@ function LogoutButton({ compact }: { compact?: boolean }) {
 function Brand() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <Camera className="w-5 h-5 text-sidebar-primary" />
+      <Logo className="w-8 h-8" />
       <span className="font-semibold text-sidebar-foreground text-lg tracking-wide">青春止秒攝影工作室</span>
     </Link>
   );
@@ -265,7 +265,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Tablet: icon rail */}
       <aside className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-0 h-[100dvh]">
         <Link href="/dashboard" aria-label="青春止秒攝影工作室" className="h-16 flex items-center justify-center border-b border-sidebar-border">
-          <Camera className="w-5 h-5 text-sidebar-primary" />
+          <Logo className="w-8 h-8" />
         </Link>
         <RailNav location={location} />
         <LogoutButton compact />
