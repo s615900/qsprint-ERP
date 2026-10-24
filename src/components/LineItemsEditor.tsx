@@ -204,7 +204,22 @@ export function LineItemsTable({
 }) {
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
+      {/* Phone: one stacked card per item so long names don't get squeezed into a narrow column */}
+      <ul className="sm:hidden divide-y divide-border/60 border-y border-border/60">
+        {items.map((item, i) => (
+          <li key={i} className="py-3 space-y-1">
+            <div className="flex items-start justify-between gap-3">
+              <span className="font-medium text-sm break-words min-w-0">{item.name}</span>
+              <span className="font-semibold text-sm tabular-nums shrink-0">{(item.quantity * item.unit_price).toLocaleString("zh-TW")}</span>
+            </div>
+            {item.description && <div className="text-xs text-muted-foreground break-words">{item.description}</div>}
+            <div className="text-xs text-muted-foreground tabular-nums">
+              {item.unit_price.toLocaleString("zh-TW")} × {item.quantity}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr>
