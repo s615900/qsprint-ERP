@@ -167,7 +167,18 @@ export async function dailyNumber(prefix: DailyPrefix): Promise<string> {
 
 // ---- indexes ----------------------------------------------------------------
 
+// Bump this whenever applyIndexes() changes; cold starts skip the ~60 index calls once the stored version matches.
+const INDEX_VERSION = 1;
+
 async function ensureIndexes(c: MongoClient): Promise<void> {
+  const meta = c.db(dbName()).collection<{ _id: string; version: number }>("meta");
+  const done = await meta.findOne({ _id: "indexes" });
+  if (done && done.version >= INDEX_VERSION) return;
+  await applyIndexes(c);
+  await meta.updateOne({ _id: "indexes" }, { $set: { version: INDEX_VERSION } }, { upsert: true });
+}
+
+async function applyIndexes(c: MongoClient): Promise<void> {
   const d = c.db(dbName());
   const unique = (col: string, key: Document, extra: Document = {}) =>
     d.collection(col).createIndex(key, { unique: true, ...extra });
