@@ -254,7 +254,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-[100dvh] bg-background">
       {/* Desktop: full sidebar */}
-      <aside className="print:hidden hidden lg:flex w-64 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-[env(safe-area-inset-top)] h-[calc(100dvh-env(safe-area-inset-top))]">
+      <aside className="print:hidden hidden lg:flex w-64 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-[var(--app-top)] h-[calc(100dvh-var(--app-top))]">
         <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
           <Brand />
         </div>
@@ -263,7 +263,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Tablet: icon rail */}
-      <aside className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-[env(safe-area-inset-top)] h-[calc(100dvh-env(safe-area-inset-top))]">
+      <aside className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-[var(--app-top)] h-[calc(100dvh-var(--app-top))]">
         <Link href="/dashboard" aria-label="青春止秒攝影工作室" className="h-16 flex items-center justify-center border-b border-sidebar-border">
           <Logo className="w-8 h-8" />
         </Link>
@@ -273,7 +273,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile: top bar + drawer */}
-        <header className="print:hidden md:hidden sticky top-[env(safe-area-inset-top)] z-40 h-14 bg-sidebar border-b border-sidebar-border flex items-center justify-between px-4">
+        <header className="print:hidden md:hidden sticky top-[var(--app-top)] z-40 h-14 bg-sidebar border-b border-sidebar-border flex items-center justify-between px-4">
           <Brand />
           <button
             type="button"
