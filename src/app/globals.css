@@ -262,6 +262,18 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* iOS 主畫面 App：內容畫到狀態列底下，所以整頁往下讓出狀態列高度，並把那一條塗成深色 */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: env(safe-area-inset-top);
+    background: hsl(var(--sidebar));
+    z-index: 9999;
+    pointer-events: none;
   }
 }
 
