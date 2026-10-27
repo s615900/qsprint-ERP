@@ -7,6 +7,16 @@ type Cache = { client?: Promise<MongoClient>; indexes?: Promise<void> };
 const globalForMongo = globalThis as unknown as { __mongo?: Cache };
 const cache: Cache = (globalForMongo.__mongo ??= {});
 
+// Timing logs (visible in Vercel Logs): connect / index setup / each query, reported separately.
+async function timed<R>(label: string, fn: () => Promise<R>): Promise<R> {
+  const t = Date.now();
+  try {
+    return await fn();
+  } finally {
+    console.log(`[mongo] ${label} ${Date.now() - t}ms`);
+  }
+}
+
 export function dbName(): string {
   return process.env.MONGODB_DB || "studio_qcms";
 }
@@ -15,7 +25,11 @@ function client(): Promise<MongoClient> {
   if (!cache.client) {
     const uri = process.env.MONGODB_URI;
     if (!uri) throw new Error("MONGODB_URI must be set.");
-    cache.client = new MongoClient(uri, { serverSelectionTimeoutMS: 8000, ignoreUndefined: true }).connect().catch((err) => {
+    const t0 = Date.now();
+    cache.client = new MongoClient(uri, { serverSelectionTimeoutMS: 8000, ignoreUndefined: true }).connect().then((c) => {
+      console.log(`[mongo] connect ${Date.now() - t0}ms`);
+      return c;
+    }).catch((err) => {
       cache.client = undefined; // let the next request retry
       throw err;
     });
@@ -25,7 +39,7 @@ function client(): Promise<MongoClient> {
 
 export async function rawCollection<T extends Document = Document>(name: string): Promise<Collection<T>> {
   const c = await client();
-  await (cache.indexes ??= ensureIndexes(c).catch((err) => {
+  await (cache.indexes ??= timed("ensureIndexes", () => ensureIndexes(c)).catch((err) => {
     cache.indexes = undefined; // retry on the next request instead of failing forever
     throw err;
   }));
@@ -62,12 +76,12 @@ export class Repo<T extends { id: number }> {
     let cursor = c.find(filter, NO_ID);
     if (opts.sort) cursor = cursor.sort(opts.sort);
     if (opts.limit) cursor = cursor.limit(opts.limit);
-    return (await cursor.toArray()) as unknown as T[];
+    return timed(`query ${this.name}.find`, () => cursor.toArray()) as unknown as Promise<T[]>;
   }
 
   async findOne(filter: Filter): Promise<T | undefined> {
     const c = await this.col();
-    return ((await c.findOne(filter, NO_ID)) as unknown as T | null) ?? undefined;
+    return ((await timed(`query ${this.name}.findOne`, () => c.findOne(filter, NO_ID))) as unknown as T | null) ?? undefined;
   }
 
   get(id: number): Promise<T | undefined> {
@@ -75,7 +89,8 @@ export class Repo<T extends { id: number }> {
   }
 
   async count(filter: Filter = {}): Promise<number> {
-    return (await this.col()).countDocuments(filter);
+    const c = await this.col();
+    return timed(`query ${this.name}.count`, () => c.countDocuments(filter));
   }
 
   async insert(data: Partial<Omit<T, "id">>): Promise<T> {
