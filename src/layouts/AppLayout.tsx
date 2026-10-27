@@ -251,48 +251,53 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // 頂列（含 iOS 狀態列後方的安全區）橫跨全寬，高度 = 3.5rem + 安全區；側欄從它下方開始。
+  // 做法同 WD 工作台：深色一路延伸到狀態列後面，iPad 在狀態列疊的半透明效果才不會落在淺色頁面上。
+  const HEADER_H = "calc(3.5rem + env(safe-area-inset-top))";
+
   return (
-    <div className="flex min-h-[100dvh] bg-background">
-      {/* Desktop: full sidebar */}
-      <aside className="print:hidden hidden lg:flex w-64 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-0 h-[100dvh]">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-          <Brand />
-        </div>
-        <FullNav location={location} />
-        <LogoutButton />
-      </aside>
-
-      {/* Tablet: icon rail */}
-      <aside className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky top-0 h-[100dvh]">
-        <Link href="/dashboard" aria-label="青春止秒攝影工作室" className="h-16 flex items-center justify-center border-b border-sidebar-border">
-          <Logo className="w-8 h-8" />
-        </Link>
-        <RailNav location={location} />
-        <LogoutButton compact />
-      </aside>
-
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile: top bar + drawer */}
-        <header className="print:hidden md:hidden sticky top-0 z-40 h-14 bg-sidebar border-b border-sidebar-border flex items-center justify-between px-4">
+    <div className="flex flex-col min-h-[100dvh] bg-background">
+      <header className="print:hidden sticky top-0 z-40 bg-sidebar border-b border-sidebar-border pt-[env(safe-area-inset-top)]">
+        <div className="h-14 flex items-center justify-between px-4 md:px-6">
           <Brand />
           <button
             type="button"
             aria-label="開啟選單"
             onClick={() => setDrawerOpen(true)}
-            className="w-10 h-10 -mr-2 flex items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+            className="md:hidden w-10 h-10 -mr-2 flex items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
-        </header>
-        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <SheetContent side="left" className="w-72 p-0 bg-sidebar border-sidebar-border text-sidebar-foreground flex flex-col [&>button]:text-sidebar-foreground">
-            <SheetTitle className="h-14 flex items-center px-6 border-b border-sidebar-border">
-              <Brand />
-            </SheetTitle>
-            <FullNav location={location} onNavigate={() => setDrawerOpen(false)} />
-            <LogoutButton />
-          </SheetContent>
-        </Sheet>
+        </div>
+      </header>
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent side="left" className="w-72 p-0 bg-sidebar border-sidebar-border text-sidebar-foreground flex flex-col [&>button]:text-sidebar-foreground">
+          <SheetTitle className="h-14 flex items-center px-6 border-b border-sidebar-border">
+            <Brand />
+          </SheetTitle>
+          <FullNav location={location} onNavigate={() => setDrawerOpen(false)} />
+          <LogoutButton />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex flex-1">
+        {/* Desktop: full sidebar */}
+        <aside
+          style={{ top: HEADER_H, height: `calc(100dvh - ${HEADER_H})` }}
+          className="print:hidden hidden lg:flex w-64 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky"
+        >
+          <FullNav location={location} />
+          <LogoutButton />
+        </aside>
+
+        {/* Tablet: icon rail */}
+        <aside
+          style={{ top: HEADER_H, height: `calc(100dvh - ${HEADER_H})` }}
+          className="print:hidden hidden md:flex lg:hidden w-16 bg-sidebar flex-col border-r border-sidebar-border flex-shrink-0 sticky"
+        >
+          <RailNav location={location} />
+          <LogoutButton compact />
+        </aside>
 
         <main className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 p-4 sm:p-6 lg:p-8 print:p-0 overflow-auto">
