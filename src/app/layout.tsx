@@ -13,7 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "青春止秒攝影工作室 — 管理系統",
   description: "青春止秒攝影工作室 接案管理系統：客戶管理、線上預約、檔期排程。",
-  appleWebApp: { capable: true, title: "青春止秒", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "青春止秒", statusBarStyle: "black" },
   formatDetection: { telephone: false },
 };
 
@@ -22,7 +22,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#2BB8F5",
+  themeColor: "#0B3D5C",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
