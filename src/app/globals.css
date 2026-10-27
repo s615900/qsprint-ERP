@@ -263,6 +263,28 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* iOS／iPadOS 的原生日期欄位會比其他欄位高、還會撐破格子壓到隔壁：
+     關掉原生外觀，讓它跟一般輸入框一樣高、寬度不超出格子，文字靠左。 */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    line-height: normal;
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value,
+  input[type="month"]::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.2em;
+    margin: 0;
+  }
 }
 
 /**
